@@ -1,0 +1,3646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自定义分组页面 - 智能分组版</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .modal-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 1600px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header .title { font-size: 16px; font-weight: 500; }
+        .modal-header .guide-link { font-size: 14px; color: #1890ff; text-decoration: none; cursor: pointer; }
+        .modal-header .guide-link:hover { color: #40a9ff; }
+
+        /* Main Content */
+        .modal-content { display: flex; border-bottom: 1px solid #f0f0f0; }
+        .panel { padding: 24px; box-sizing: border-box; }
+        .left-panel { width: 21.34%; border-right: 1px solid #f0f0f0; }
+        .middle-panel { width: 32.00%; border-right: 1px solid #f0f0f0; }
+        .right-panel { width: 46.66%; }
+        .panel-header { font-size: 14px; margin-bottom: 16px; }
+        .panel-header-title { font-weight: 500; color: #555; }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .button-group { display: flex; gap: 8px; }
+        .search-input { position: relative; width: 36%; }
+        .search-input input { width: 100%; padding: 8px 12px 8px 30px; border: 1px solid #d9d9d9; border-radius: 4px; transition: all 0.3s; box-sizing: border-box; }
+        .search-input input:focus { border-color: #40a9ff; outline: none; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); }
+        .search-input .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; }
+
+        .btn { padding: 6px 15px; border-radius: 4px; border: 1px solid transparent; font-size: 13px; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background-color: #1890ff; color: #fff; border-color: #1890ff; }
+        .btn-primary:hover { background-color: #40a9ff; border-color: #40a9ff; }
+        .btn-success { background-color: #52c41a; color: #fff; border-color: #52c41a; }
+        .btn-success:hover { background-color: #73d13d; border-color: #73d13d; }
+        .btn-default { background-color: #fff; color: #333; border-color: #d9d9d9; }
+        .btn-default:hover { color: #40a9ff; border-color: #40a9ff; }
+        .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+        /* Icon button styles */
+        .btn-icon {
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+        }
+        .btn-icon:hover {
+            background-color: #f0f8ff;
+            border-color: #40a9ff;
+            color: #1890ff;
+            transform: scale(1.05);
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Priority adjustment button styles */
+        .priority-btn-group {
+            display: inline-flex;
+            gap: 2px;
+            margin-right: 8px;
+        }
+
+        .btn-priority {
+            padding: 4px 6px;
+            border-radius: 3px;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+        }
+
+        .btn-priority:hover:not(:disabled) {
+            background-color: #f0f8ff;
+            border-color: #40a9ff;
+            color: #1890ff;
+            transform: scale(1.05);
+        }
+
+        .btn-priority:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .btn-priority:disabled {
+            background-color: #f5f5f5;
+            border-color: #e8e8e8;
+            color: #bbb;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .data-table { border: 1px solid #f0f0f0; border-radius: 4px; }
+        .table-header, .table-row { display: flex; align-items: center; padding: 12px 16px; font-size: 14px; }
+        .table-header { background-color: #fafafa; font-weight: 500; }
+        .table-body { height: 380px; overflow-y: auto; }
+        .table-row { border-bottom: 1px solid #f0f0f0; }
+        .table-row:last-child { border-bottom: none; }
+        .table-row:hover { background-color: #e6f7ff; }
+        
+        .col-checkbox { flex: 0 0 40px; }
+        .col-name { flex: 1; }
+        .col-group { flex: 0 0 100px; color: #888; text-align: right; }
+        .col-op { flex: 0 0 120px; text-align: right; }
+        .col-delete { flex: 0 0 40px; text-align: center; }
+
+        .pagination { display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; font-size: 14px; }
+        .pagination span { margin: 0 8px; }
+        .pagination-btn { padding: 4px 8px; border: 1px solid #d9d9d9; background: #fff; cursor: pointer; border-radius: 4px; }
+        .pagination-btn:disabled { color: #ccc; cursor: not-allowed; }
+
+        /* Footer */
+        .modal-footer { padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .footer-left .checkbox-label { font-size: 14px; display: flex; align-items: center; }
+        .footer-left input { margin-right: 8px; }
+        .footer-right .btn { margin-left: 8px; }
+        
+        /* Utility & Right Panel Specific */
+        .text-blue { color: #1890ff; cursor: pointer; }
+        .text-blue:hover { color: #40a9ff; }
+        .group-list-container, .rule-list-container { height: 420px; overflow-y: auto; border: 1px solid #f0f0f0; border-radius: 4px; }
+        .group-table { height: 100%; display: flex; flex-direction: column; }
+        .group-table .table-header { background-color: #fafafa; font-weight: 500; border-bottom: 1px solid #f0f0f0; }
+        .group-table .table-body { flex: 1; overflow-y: auto; }
+        .group-table .col-checkbox { flex: 0 0 40px; }
+        .group-table .col-group-name { flex: 1; }
+        .group-table .col-operation { flex: 0 0 140px; text-align: right; }
+        .group-table .group-name { font-weight: 500; margin-right: 8px; }
+        .group-table .group-count { color: #888; font-size: 12px; }
+        .group-table .col-operation .btn { margin-left: 4px; }
+
+        /* Auto badge styles */
+        .group-table .auto-badge {
+            display: inline-block;
+            background-color: #52c41a;
+            color: white;
+            font-size: 10px;
+            font-weight: normal;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+            cursor: help;
+            position: relative;
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        /* Rule table styles */
+        .rule-table { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .rule-table-scroll-container { flex: 1; overflow: auto; }
+        .rule-table .table-header { background-color: #fafafa; font-weight: 500; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 10; }
+        .rule-table .table-body { min-height: 0; }
+        .rule-table .col-drag-handle { flex: 0 0 30px; text-align: center; }
+        .rule-table .col-checkbox { flex: 0 0 40px; }
+        .rule-table .col-rule-name {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            line-height: 1.4;
+        }
+        .rule-table .col-status { flex: 0 0 80px; text-align: center; }
+        .rule-table .col-bound-group { flex: 0 0 120px; text-align: center; }
+        .rule-table .col-rule-operation { flex: 0 0 200px; text-align: center; }
+        .rule-table .col-rule-operation .btn { margin-left: 4px; }
+
+        /* Drag handle styles for rule table */
+        .rule-drag-handle {
+            color: #999;
+            cursor: grab;
+            font-size: 16px;
+            padding: 4px;
+            transition: all 0.3s;
+            border-radius: 3px;
+        }
+        .rule-drag-handle:hover {
+            color: #666;
+            background-color: #f0f0f0;
+            transform: scale(1.1);
+        }
+        .rule-drag-handle:active {
+            cursor: grabbing;
+            background-color: #e6f7ff;
+        }
+
+        /* Dragging states for rule rows */
+        .rule-table .table-row.dragging {
+            opacity: 0.5;
+            background-color: #f0f8ff;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            position: relative;
+        }
+
+        .rule-table .table-row.drag-over {
+            border-top: 2px solid #1890ff;
+        }
+
+        .rule-table .table-row.drag-over-bottom {
+            border-bottom: 2px solid #1890ff;
+        }
+
+        /* Priority badge in rule table */
+        .rule-priority-badge {
+            background: #e6f7ff;
+            color: #1890ff;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-right: 6px;
+        }
+
+        /* Status column styles */
+        .status-enabled { color: #52c41a; font-weight: 500; }
+        .status-disabled { color: #ff4d4f; font-weight: 500; }
+
+        /* Rule action bar styles */
+        .rule-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .rule-action-bar .search-input { position: relative; width: 36%; }
+        .rule-action-bar .button-group { display: flex; gap: 8px; }
+
+        /* Rule table content styles */
+        .rule-name-content { display: flex; flex-direction: column; }
+        .rule-name { font-weight: 500; margin-bottom: 4px; }
+        .rule-details { display: flex; gap: 6px; margin-bottom: 4px; }
+        .rule-pattern { font-size: 12px; color: #666; }
+        .priority-badge, .binding-badge, .conflict-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background-color: #f0f0f0;
+            color: #666;
+        }
+        .binding-badge.create { background-color: #e6f7ff; color: #1890ff; }
+        .binding-badge.existing { background-color: #f6ffed; color: #52c41a; }
+        .conflict-badge { background-color: #fff2e8; color: #fa8c16; }
+        .group-item { border-bottom: 1px solid #f0f0f0; }
+        .group-item:last-child { border-bottom: none; }
+        .group-header { display: flex; align-items: center; padding: 12px 16px; background-color: #fafafa; cursor: pointer; }
+        .group-toggle {
+            margin-right: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            width: 18px;
+            text-align: center;
+            line-height: 1;
+        }
+        .group-name { flex-grow: 1; font-weight: 500; }
+        .group-content { display: none; padding: 16px; border-top: 1px solid #f0f0f0; }
+        .group-item.expanded .group-content { display: block; }
+        .nested-table .table-row { padding: 8px 12px; }
+        .nested-table .col-name { flex: 1; }
+        .delete-item { cursor: pointer; font-size: 16px; }
+        .nested-pagination { justify-content: center; margin-top: 10px; }
+
+        /* New Styles for Rule Management */
+        .rule-section {
+            background-color: #f5f7fa;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .rule-section:hover {
+            background-color: #e6f7ff;
+        }
+        .rule-section.expanded {
+            background-color: #e6f7ff;
+        }
+        .rule-summary {
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .rule-count {
+            color: #1890ff;
+            font-weight: 500;
+            margin-left: 5px;
+        }
+        .rule-toggle {
+            margin-right: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 16px;
+            text-align: center;
+            line-height: 1;
+        }
+        .manage-btn {
+            font-size: 14px;
+            color: #1890ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .manage-btn:hover {
+            color: #40a9ff;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-dialog {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-dialog-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-dialog-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        .modal-dialog-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-dialog-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Rule List Styles */
+        .rule-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .rule-list {
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+        }
+        .rule-item {
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px;
+            transition: all 0.3s;
+            cursor: move;
+        }
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+        .rule-item:hover {
+            background-color: #fafafa;
+        }
+        .rule-item.dragging {
+            opacity: 0.5;
+        }
+        .rule-item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .drag-handle {
+            margin-right: 12px;
+            color: #999;
+            cursor: move;
+        }
+        .rule-checkbox {
+            margin-right: 12px;
+        }
+        .priority-badge {
+            background: #e6f7ff;
+            color: #1890ff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .rule-name {
+            font-weight: 500;
+            flex: 1;
+        }
+        .rule-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .rule-pattern {
+            color: #666;
+            font-size: 13px;
+            margin-left: 40px;
+            margin-bottom: 4px;
+        }
+        .rule-stats {
+            color: #999;
+            font-size: 12px;
+            margin-left: 40px;
+        }
+
+        /* Rule Editor Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-label .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+        .form-input, select.form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background-color: #fff;
+        }
+        .form-input:focus, select.form-input:focus {
+            border-color: #40a9ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .radio-label input {
+            margin-right: 6px;
+        }
+        .rule-syntax-help {
+            background: #f5f7fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .preview-section {
+            margin-top: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            padding: 12px;
+        }
+        .preview-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .preview-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .preview-item {
+            padding: 4px 0;
+            font-size: 13px;
+            color: #52c41a;
+        }
+
+
+
+        /* Enhanced Preview Styles */
+        .preview-content {
+            position: relative;
+        }
+        .preview-stats {
+            background: #f0f8ff;
+            border: 1px solid #d6e4ff;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .preview-stats .stat-item {
+            margin-bottom: 4px;
+        }
+        .preview-stats .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        .preview-conflicts {
+            background: #fff2e8;
+            border: 1px solid #ffbb96;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-top: 8px;
+        }
+        .conflict-warning {
+            color: #fa8c16;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .conflict-warning:last-child {
+            margin-bottom: 0;
+        }
+        .conflict-item {
+            background: #fff1f0;
+            border: 1px solid #ffccc7;
+            border-radius: 3px;
+            padding: 4px 8px;
+            margin: 4px 0;
+            font-size: 12px;
+            color: #cf1322;
+        }
+        .preview-item::before {
+            content: "✓ ";
+            margin-right: 4px;
+        }
+        .preview-more {
+            color: #1890ff;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* Auto-group indicator */
+        .auto-grouped {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+        }
+        .auto-group-badge {
+            background: #52c41a;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        /* Syntax Help Styles */
+        .input-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        .help-link {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 12px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .help-link:hover {
+            color: #40a9ff;
+            text-decoration: underline;
+        }
+        .help-link:active {
+            color: #096dd9;
+        }
+        .syntax-help-panel {
+            background: #fafbfc;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .help-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            background: #f0f8ff;
+            border-radius: 6px 6px 0 0;
+        }
+        .help-header h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #1890ff;
+        }
+        .close-help {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-help:hover {
+            color: #666;
+        }
+        .help-content {
+            padding: 16px;
+        }
+        .help-section {
+            margin-bottom: 20px;
+        }
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+        .help-section h5 {
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+        }
+        .syntax-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            padding: 6px 0;
+        }
+        .syntax-item code {
+            background: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #d4380d;
+            min-width: 40px;
+            text-align: center;
+        }
+        .syntax-desc {
+            font-size: 12px;
+            color: #666;
+        }
+        .example-item {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+        .example-pattern {
+            margin-bottom: 4px;
+        }
+        .example-pattern code {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 3px;
+            padding: 3px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #1890ff;
+            font-weight: 500;
+        }
+        .example-desc {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .tips-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+        .tips-list li {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        /* Rule binding styles */
+        .binding-badge {
+            background: #f0f0f0;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .binding-badge.create {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        .binding-badge.existing {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+        
+        /* Conflict indicator */
+        .conflict-badge {
+            background: #fff1f0;
+            color: #ff4d4f;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        /* Rule item enhanced */
+        .rule-item.has-conflict {
+            border-left: 3px solid #ff4d4f;
+        }
+        
+        /* Group stats styles */
+        .group-stats {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+        }
+        .group-stats-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stats-icon {
+            font-size: 14px;
+        }
+
+        /* System rule styles */
+        .system-rule-row {
+            background-color: #f6ffed !important;
+            border-left: 3px solid #52c41a;
+        }
+        .system-rule-row:hover {
+            background-color: #f6ffed !important;
+        }
+        .system-rule-badge {
+            background: #52c41a;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-right: 6px;
+        }
+        .system-rule-priority {
+            background: #52c41a;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        /* Rule pattern text styles */
+        .rule-pattern-text {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .col-rule-name[title] {
+            cursor: help;
+        }
+
+        .col-rule-name[title]:hover .rule-pattern-text {
+            color: #1890ff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+        <span class="title">自定义分组</span>
+        <a class="guide-link">使用指引</a>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-content">
+        <!-- Left Panel -->
+        <div class="panel left-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">待分组维度列表 (类型名称: 手游操作系统)</span>
+            </div>
+            <div class="action-bar">
+                <div class="search-input">
+                     <span class="icon">🔍</span>
+                     <input type="text" id="search-items" placeholder="输入维度值名称">
+                </div>
+                <button class="btn btn-primary">批量导入</button>
+            </div>
+            <div class="data-table">
+                <div class="table-header">
+                    <div class="col-checkbox"><input type="checkbox" id="select-all"></div>
+                    <div class="col-name">维度名称</div>
+                    <div class="col-group">分组名称</div>
+                </div>
+                <div class="table-body" id="items-container"></div>
+            </div>
+            <div class="pagination" id="pagination-container"></div>
+        </div>
+
+        <!-- Middle Panel (原右侧面板) -->
+        <div class="panel middle-panel">
+            <div class="panel-header">
+                <input type="text" class="panel-header-title" placeholder="请输入自定义分类名称">
+            </div>
+            <div class="action-bar">
+                 <div class="search-input">
+                     <span class="icon">🔍</span>
+                     <input type="text" id="search-groups" placeholder="搜索分组或维度值">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btn-new-group">新建</button>
+                    <button class="btn btn-success" id="btn-match-groups">匹配</button>
+                    <button class="btn btn-default">导入</button>
+                    <button class="btn btn-default">删除</button>
+                </div>
+            </div>
+            <div class="group-list-container" id="groups-container">
+                <div class="group-table">
+                    <div class="table-header">
+                        <div class="col-checkbox"><input type="checkbox" id="select-all-groups"></div>
+                        <div class="col-group-name">分组名称</div>
+                        <div class="col-operation">操作</div>
+                    </div>
+                    <div class="table-body" id="groups-table-body"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel (新增) -->
+        <div class="panel right-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">匹配规则列表</span>
+            </div>
+            <!-- Rule Title Section -->
+            <div class="rule-summary" style="margin-bottom: 16px;">
+                <span>智能分组规则</span>
+                <span class="rule-count" id="rule-count">(0条规则生效中)</span>
+                <div style="font-size: 12px; color: #888; margin-top: 4px;">
+                    💡 提示：拖拽 ⋮⋮ 图标可调整规则优先级顺序
+                </div>
+            </div>
+
+            <!-- Rule Action Bar -->
+            <div class="rule-action-bar">
+                <div class="search-input">
+                    <span class="icon">🔍</span>
+                    <input type="text" id="search-rules" placeholder="搜索规则名称或绑定分组">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btn-new-rule-main">新建</button>
+                    <button class="btn btn-default" id="btn-batch-delete" disabled>删除</button>
+                    <button class="btn btn-default" id="btn-batch-toggle" disabled>启用/暂停</button>
+                </div>
+            </div>
+
+            <!-- Rule List Container with Table Structure -->
+            <div class="rule-list-container" id="rule-list-container">
+                <div class="rule-table">
+                    <div class="rule-table-scroll-container">
+                        <div class="table-header">
+                            <div class="col-drag-handle"></div>
+                            <div class="col-checkbox"><input type="checkbox" id="select-all-rules"></div>
+                            <div class="col-rule-name">规则</div>
+                            <div class="col-status">状态</div>
+                            <div class="col-bound-group">绑定分组</div>
+                            <div class="col-rule-operation">操作</div>
+                        </div>
+                        <div class="table-body" id="rule-table-body">
+                            <!-- 规则列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+        <div class="footer-left">
+            <label class="checkbox-label">
+                <input type="checkbox" checked>
+                将未分组维度值归类为【其他】
+            </label>
+        </div>
+        <div class="footer-right">
+            <button class="btn btn-default">取消</button>
+            <button class="btn btn-primary">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Rule Management Modal -->
+<div class="modal-overlay" id="rule-modal">
+    <div class="modal-dialog">
+        <div class="modal-dialog-header">
+            <h3 class="modal-dialog-title">智能分组规则管理</h3>
+            <button class="modal-close" id="close-rule-modal">×</button>
+        </div>
+        <div class="modal-dialog-body">
+            <div class="rule-toolbar">
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btn-new-rule">新建规则</button>
+                    <button class="btn btn-default">批量导入</button>
+                    <button class="btn btn-default">导出规则</button>
+                </div>
+                <button class="btn btn-default" id="btn-test-rules">测试规则</button>
+            </div>
+            <div class="rule-list" id="rule-list">
+                <!-- Rules will be dynamically inserted here -->
+            </div>
+        </div>
+        <div class="modal-dialog-footer">
+            <button class="btn btn-default" id="cancel-rule-modal">取消</button>
+            <button class="btn btn-primary" id="save-rule-modal">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Rule Editor Modal -->
+<div class="modal-overlay" id="rule-editor-modal">
+    <div class="modal-dialog">
+        <div class="modal-dialog-header">
+            <h3 class="modal-dialog-title" id="rule-editor-title">新建分组规则</h3>
+            <button class="modal-close" id="close-rule-editor">×</button>
+        </div>
+        <div class="modal-dialog-body">
+            <form id="rule-editor-form">
+                <div class="form-group">
+                    <label class="form-label">绑定类型</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="binding-type" value="existing" checked>
+                            绑定到已有分组
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="binding-type" value="create">
+                            创建新分组
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="existing-group-section">
+                    <label class="form-label">
+                        选择分组<span class="required">*</span>
+                    </label>
+                    <select class="form-input" id="rule-group-select">
+                        <option value="">请选择分组</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="new-group-section" style="display: none;">
+                    <label class="form-label">
+                        新分组名称<span class="required">*</span>
+                    </label>
+                    <input type="text" class="form-input" id="rule-group-name" placeholder="请输入分组名称">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">匹配模式</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="match-mode" value="keywords" checked>
+                            关键词组合
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="match-mode" value="wildcard">
+                            通配符匹配
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="match-mode" value="regex">
+                            正则表达式
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="wildcard-section">
+                    <label class="form-label">
+                        匹配规则<span class="required">*</span>
+                    </label>
+                    <input type="text" class="form-input" id="wildcard-pattern" placeholder="例如：头条*">
+                    <div class="input-hint" id="wildcard-hint">
+                        使用 * 代表任意字符，如 "头条*" 匹配所有以"头条"开头的维度值
+                        <a href="javascript:void(0)" class="help-link" id="wildcard-help-btn">详细规则</a>
+                    </div>
+                    <div class="syntax-help-panel" id="wildcard-help-panel" style="display: none;">
+                        <div class="help-header">
+                            <h4>通配符匹配语法指南</h4>
+                            <button type="button" class="close-help" id="close-wildcard-help">×</button>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-section">
+                                <h5>基础语法</h5>
+                                <div class="syntax-item">
+                                    <code>*</code>
+                                    <span class="syntax-desc">匹配任意数量的字符（包括0个）</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>?</code>
+                                    <span class="syntax-desc">匹配单个字符</span>
+                                </div>
+                            </div>
+                            <div class="help-section">
+                                <h5>常用示例</h5>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>头条*</code></div>
+                                    <div class="example-desc">匹配：头条、头条新闻、头条广告等</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>*移动端</code></div>
+                                    <div class="example-desc">匹配：iOS移动端、安卓移动端等</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>*广告*</code></div>
+                                    <div class="example-desc">匹配：信息流广告、视频广告、横幅广告等</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>app_?</code></div>
+                                    <div class="example-desc">匹配：app_1、app_2、app_a等（单个字符）</div>
+                                </div>
+                            </div>
+                            <div class="help-section">
+                                <h5>实用技巧</h5>
+                                <ul class="tips-list">
+                                    <li>使用 * 可以匹配包含特定词汇的所有维度值</li>
+                                    <li>? 适合匹配有规律变化的维度值，如版本号</li>
+                                    <li>可以组合使用，如 "v*_?" 匹配版本号格式</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="syntax-help-panel" id="regex-help-panel" style="display: none;">
+                        <div class="help-header">
+                            <h4>正则表达式简易指南</h4>
+                            <button type="button" class="close-help" id="close-regex-help">×</button>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-section">
+                                <h5>基础语法</h5>
+                                <div class="syntax-item">
+                                    <code>^</code>
+                                    <span class="syntax-desc">匹配文本的开头</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>$</code>
+                                    <span class="syntax-desc">匹配文本的结尾</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>.</code>
+                                    <span class="syntax-desc">匹配任意单个字符</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>.*</code>
+                                    <span class="syntax-desc">匹配任意数量的任意字符</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>[abc]</code>
+                                    <span class="syntax-desc">匹配方括号内的任意一个字符</span>
+                                </div>
+                                <div class="syntax-item">
+                                    <code>(a|b)</code>
+                                    <span class="syntax-desc">匹配a或b</span>
+                                </div>
+                            </div>
+                            <div class="help-section">
+                                <h5>常用示例</h5>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>^头条</code></div>
+                                    <div class="example-desc">匹配所有以"头条"开头的维度值</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>移动端$</code></div>
+                                    <div class="example-desc">匹配所有以"移动端"结尾的维度值</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>^(ios|android)$</code></div>
+                                    <div class="example-desc">精确匹配"ios"或"android"</div>
+                                </div>
+                                <div class="example-item">
+                                    <div class="example-pattern"><code>广告.*效果</code></div>
+                                    <div class="example-desc">匹配先有"广告"后有"效果"的维度值</div>
+                                </div>
+                            </div>
+                            <div class="help-section">
+                                <h5>实用技巧</h5>
+                                <ul class="tips-list">
+                                    <li>使用 ^ 和 $ 可以精确匹配整个维度值</li>
+                                    <li>使用 (选项1|选项2) 可以匹配多个可能的值</li>
+                                    <li>如果不确定如何使用，可以先尝试通配符匹配</li>
+                                    <li>正则表达式比通配符更强大，但也更复杂</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="keywords-section" style="display: none;">
+                    <label class="form-label">包含关键词</label>
+                    <div id="include-keywords">
+                        <!-- Keywords will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-default btn-sm" id="add-include-keyword">+ 添加关键词</button>
+                    
+                    <label class="form-label" style="margin-top: 16px;">排除关键词</label>
+                    <div id="exclude-keywords">
+                        <!-- Keywords will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-default btn-sm" id="add-exclude-keyword">+ 添加排除词</button>
+                </div>
+
+                <!-- Priority Configuration Section -->
+                <div class="form-group" id="priority-section" style="display: none;">
+                    <label class="form-label">优先级配置</label>
+                    <select class="form-input" id="priority-select">
+                        <option value="highest">最高优先级</option>
+                        <option value="lowest" selected>最低优先级</option>
+                    </select>
+                </div>
+
+                <div class="preview-section">
+                    <div class="preview-title">实时预览</div>
+                    <div class="preview-content">
+                        <div class="preview-stats" id="preview-stats">
+                            <!-- Preview statistics will be shown here -->
+                        </div>
+                        <div class="preview-list" id="preview-list">
+                            <!-- Preview items will be shown here -->
+                        </div>
+                        <div class="preview-conflicts" id="preview-conflicts" style="display: none;">
+                            <!-- Conflict warnings will be shown here -->
+                        </div>
+                        <div class="preview-more" id="preview-more" style="display: none;">查看全部...</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-dialog-footer">
+            <button class="btn btn-default" id="cancel-rule-editor">取消</button>
+            <button class="btn btn-primary" id="save-rule-editor">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- 1. STATE MANAGEMENT ---
+    let allItems = [
+        { id: 1, name: 'switch', group: '分组1', isAutoGrouped: false }, 
+        { id: 2, name: 'ps', group: '分组2', isAutoGrouped: false },
+        { id: 3, name: 'web_android', group: '分组2', isAutoGrouped: false }, 
+        { id: 4, name: 'web_ios', group: '待分组', isAutoGrouped: false },
+        { id: 5, name: 'xbox', group: '分组1', isAutoGrouped: false }, 
+        { id: 6, name: 'chromeos', group: '待分组', isAutoGrouped: false },
+        { id: 7, name: 'popo_mini', group: '待分组', isAutoGrouped: false }, 
+        { id: 8, name: 'ios', group: '分组1', isAutoGrouped: false },
+        { id: 9, name: 'android', group: '移动端', isAutoGrouped: false }, 
+        { id: 10, name: 'windows', group: 'PC端', isAutoGrouped: false },
+        { id: 11, name: 'macos', group: '待分组', isAutoGrouped: false }, 
+        { id: 12, name: 'linux', group: '待分组', isAutoGrouped: false },
+        { id: 13, name: 'playstation5', group: '分组1', isAutoGrouped: false }, 
+        { id: 14, name: 'xbox_series_x', group: '分组1', isAutoGrouped: false },
+        { id: 15, name: 'nintendo_wii', group: '待分组', isAutoGrouped: false }, 
+        { id: 16, name: 'steam_deck', group: '待分组', isAutoGrouped: false },
+        { id: 17, name: 'ipad_os', group: '移动端', isAutoGrouped: false }, 
+        { id: 18, name: 'harmony_os', group: '待分组', isAutoGrouped: false },
+        { id: 19, name: 'ubuntu', group: '待分组', isAutoGrouped: false }, 
+        { id: 20, name: 'symbian', group: '待分组', isAutoGrouped: false },
+        // Add more test data for rule matching
+        { id: 21, name: '今日头条(效果)', group: '待分组', isAutoGrouped: false },
+        { id: 22, name: '头条直播(效果)', group: '待分组', isAutoGrouped: false },
+        { id: 23, name: '头条原生(效果)', group: '待分组', isAutoGrouped: false },
+        { id: 24, name: '抖音直播', group: '待分组', isAutoGrouped: false },
+        { id: 25, name: '抖音信息流', group: '待分组', isAutoGrouped: false },
+        { id: 26, name: '快手效果', group: '待分组', isAutoGrouped: false },
+    ];
+    
+    let groups = ['分组1', '分组2', 'PC端', '移动端'];
+    
+    // Rule management state
+    let groupRules = [];
+    let editingRuleId = null;
+    
+    // Enhanced rule data structure
+    const createRule = (data) => ({
+        id: data.id || `rule_${Date.now()}`,
+        name: data.name || '',
+        groupName: data.groupName,
+        bindingType: data.bindingType || 'existing', // 'existing' or 'create'
+        priority: data.priority || groupRules.length + 1,
+        enabled: data.enabled !== false,
+        matchMode: data.matchMode || 'wildcard', // 'wildcard', 'regex', 'exact', 'keywords'
+        rule: data.rule || { type: 'wildcard', pattern: '' },
+        isSystemRule: data.isSystemRule || false, // 标识系统规则
+        stats: {
+            matchCount: 0,
+            lastMatched: null,
+            conflictCount: 0
+        },
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString()
+    });
+
+    // Create system default rule for unmatched items
+    const createSystemDefaultRule = () => ({
+        id: 'system_default_rule',
+        name: '未匹配维度值自动加入其他',
+        groupName: '其他',
+        bindingType: 'existing',
+        priority: 9999, // 最低优先级
+        enabled: false, // 默认禁用，需要用户主动启用
+        matchMode: 'system',
+        rule: { type: 'system', pattern: 'catch_all' },
+        isSystemRule: true,
+        stats: {
+            matchCount: 0,
+            lastMatched: null,
+            conflictCount: 0
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    });
+
+    // Ensure system rule and "其他" group exist
+    const ensureSystemRule = () => {
+        // 确保"其他"分组存在
+        if (!groups.includes('其他')) {
+            groups.push('其他');
+        }
+
+        // 检查是否已存在系统规则
+        const existingSystemRule = groupRules.find(rule => rule.isSystemRule);
+        if (!existingSystemRule) {
+            const systemRule = createSystemDefaultRule();
+            groupRules.push(systemRule);
+        }
+    };
+
+    // Save user rules to localStorage (exclude system rules)
+    const saveRulesToStorage = () => {
+        const userRules = groupRules.filter(rule => !rule.isSystemRule);
+        localStorage.setItem('groupRules', JSON.stringify(userRules));
+    };
+    
+    // State for left panel
+    let mainCurrentPage = 1;
+    const mainItemsPerPage = 10;
+    let itemFilter = '';
+
+    // State for right panel
+    let groupFilter = '';
+    let ruleFilter = '';
+    let expandedGroups = new Set();
+    let groupPagination = {};
+    const nestedItemsPerPage = 5;
+
+    // --- 2. DOM ELEMENTS ---
+    const itemsContainer = document.getElementById('items-container');
+    const groupsContainer = document.getElementById('groups-container');
+    const groupsTableBody = document.getElementById('groups-table-body');
+    const searchItemsInput = document.getElementById('search-items');
+    const searchGroupsInput = document.getElementById('search-groups');
+    const selectAllCheckbox = document.getElementById('select-all');
+    const selectAllGroupsCheckbox = document.getElementById('select-all-groups');
+    const paginationContainer = document.getElementById('pagination-container');
+    const btnNewGroup = document.getElementById('btn-new-group');
+    const btnMatchGroups = document.getElementById('btn-match-groups');
+    
+    // Rule management elements
+    const ruleModal = document.getElementById('rule-modal');
+    const ruleEditorModal = document.getElementById('rule-editor-modal');
+    const ruleList = document.getElementById('rule-list');
+    const ruleListContainer = document.getElementById('rule-list-container');
+    const ruleTableBody = document.getElementById('rule-table-body');
+    const searchRulesInput = document.getElementById('search-rules');
+    const selectAllRulesCheckbox = document.getElementById('select-all-rules');
+    const btnNewRule = document.getElementById('btn-new-rule');
+    const btnNewRuleMain = document.getElementById('btn-new-rule-main');
+    const btnTestRules = document.getElementById('btn-test-rules');
+    const btnBatchDelete = document.getElementById('btn-batch-delete');
+    const btnBatchToggle = document.getElementById('btn-batch-toggle');
+    const ruleCount = document.getElementById('rule-count');
+
+    // --- 3. RULE ENGINE ---
+    
+    // Convert wildcard pattern to regex
+    const wildcardToRegex = (pattern) => {
+        // Escape special regex characters except * and ?
+        let escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+        // Replace wildcards
+        escaped = escaped.replace(/\*/g, '.*');
+        escaped = escaped.replace(/\?/g, '.');
+        return new RegExp(`^${escaped}$`, 'i');
+    };
+
+    // Match item against a rule with multiple modes
+    const matchRule = (itemName, rule) => {
+        switch (rule.type) {
+            case 'wildcard':
+                const wildcardRegex = wildcardToRegex(rule.pattern);
+                return wildcardRegex.test(itemName);
+
+            case 'regex':
+                try {
+                    const regex = new RegExp(rule.pattern, 'i');
+                    return regex.test(itemName);
+                } catch (e) {
+                    console.error('Invalid regex pattern:', rule.pattern);
+                    return false;
+                }
+
+            case 'exact':
+                return itemName.toLowerCase() === rule.pattern.toLowerCase();
+
+            case 'keywords':
+                const lowerName = itemName.toLowerCase();
+                // Check include keywords (AND logic)
+                if (rule.includeKeywords && rule.includeKeywords.length > 0) {
+                    const hasAllIncluded = rule.includeKeywords.every(keyword =>
+                        lowerName.includes(keyword.toLowerCase())
+                    );
+                    if (!hasAllIncluded) return false;
+                }
+                // Check exclude keywords
+                if (rule.excludeKeywords && rule.excludeKeywords.length > 0) {
+                    const hasExcluded = rule.excludeKeywords.some(keyword =>
+                        lowerName.includes(keyword.toLowerCase())
+                    );
+                    if (hasExcluded) return false;
+                }
+                return true;
+
+            case 'system':
+                // 系统规则总是匹配所有项目，作为兜底规则
+                return true;
+
+            default:
+                return false;
+        }
+    };
+
+    // Apply rules to all items with conflict detection
+    const applyRules = () => {
+        // Ensure system rule exists
+        ensureSystemRule();
+
+        // Reset auto-grouped items and stats
+        allItems.forEach(item => {
+            if (item.isAutoGrouped) {
+                item.group = '待分组';
+                item.isAutoGrouped = false;
+                item.appliedRuleId = null;
+            }
+        });
+
+        // Reset rule stats
+        groupRules.forEach(rule => {
+            rule.stats.matchCount = 0;
+            rule.stats.conflictCount = 0;
+        });
+
+        // Separate system rules and user rules
+        const userRules = groupRules.filter(rule => !rule.isSystemRule && rule.enabled);
+        const systemRules = groupRules.filter(rule => rule.isSystemRule && rule.enabled);
+
+        // Sort user rules by priority
+        const sortedUserRules = [...userRules].sort((a, b) => a.priority - b.priority);
+
+        // Track conflicts
+        const conflictMap = new Map(); // item.id -> [rule.id, ...]
+
+        // Apply user rules first
+        allItems.forEach(item => {
+            // Skip manually grouped items
+            if (item.group !== '待分组') return;
+
+            const matchingRules = [];
+
+            // Find all matching user rules
+            for (const rule of sortedUserRules) {
+                if (matchRule(item.name, rule.rule || rule)) {
+                    matchingRules.push(rule);
+                }
+            }
+
+            if (matchingRules.length > 0) {
+                // Apply the highest priority rule
+                const appliedRule = matchingRules[0];
+                item.group = appliedRule.groupName;
+                item.isAutoGrouped = true;
+                item.appliedRuleId = appliedRule.id;
+                appliedRule.stats.matchCount++;
+                appliedRule.stats.lastMatched = new Date().toISOString();
+
+                // Handle binding type
+                if (appliedRule.bindingType === 'create' && !groups.includes(appliedRule.groupName)) {
+                    groups.push(appliedRule.groupName);
+                }
+
+                // Check for conflicts (multiple rules with same priority)
+                const samePriorityRules = matchingRules.filter(r => r.priority === appliedRule.priority);
+                if (samePriorityRules.length > 1) {
+                    conflictMap.set(item.id, samePriorityRules.map(r => r.id));
+                    samePriorityRules.forEach(r => r.stats.conflictCount++);
+                }
+            }
+        });
+
+        // Apply system rules to remaining unmatched items
+        systemRules.forEach(systemRule => {
+            allItems.forEach(item => {
+                // Only apply to items that are still in "待分组" state
+                if (item.group === '待分组') {
+                    item.group = systemRule.groupName;
+                    item.isAutoGrouped = true;
+                    item.appliedRuleId = systemRule.id;
+                    systemRule.stats.matchCount++;
+                    systemRule.stats.lastMatched = new Date().toISOString();
+                }
+            });
+        });
+
+        // Store conflict information
+        window.ruleConflicts = conflictMap;
+
+        renderAll();
+    };
+
+    // --- 4. RENDER FUNCTIONS ---
+
+    const renderAll = () => {
+        renderItems();
+        renderGroups();
+        renderRuleListInPanel();
+        updateRuleCount();
+    }
+
+    const updateRuleCount = () => {
+        const enabledCount = groupRules.filter(r => r.enabled).length;
+        ruleCount.textContent = `(${enabledCount}条规则生效中)`;
+    };
+
+    // Renders the list of items on the left
+    const renderItems = () => {
+        const filteredItems = allItems.filter(item =>
+            item.name.toLowerCase().includes(itemFilter.toLowerCase())
+        );
+        const startIndex = (mainCurrentPage - 1) * mainItemsPerPage;
+        const paginatedItems = filteredItems.slice(startIndex, startIndex + mainItemsPerPage);
+        
+        itemsContainer.innerHTML = '';
+        paginatedItems.forEach(item => {
+            const row = document.createElement('div');
+            row.className = `table-row ${item.isAutoGrouped ? 'auto-grouped' : ''}`;
+            row.innerHTML = `
+                <div class="col-checkbox"><input type="checkbox" class="item-checkbox" data-id="${item.id}"></div>
+                <div class="col-name">${item.name}</div>
+                <div class="col-group">
+                    ${item.group}
+                    ${item.isAutoGrouped ? '<span class="auto-group-badge">自动</span>' : ''}
+                </div>
+            `;
+            itemsContainer.appendChild(row);
+        });
+
+        renderMainPagination(filteredItems.length);
+        updateSelectAllCheckbox();
+    };
+
+    // Renders the table-style groups list
+    const renderGroups = () => {
+        const filteredGroups = groups.filter(g => g.toLowerCase().includes(groupFilter.toLowerCase()));
+        groupsTableBody.innerHTML = '';
+
+        filteredGroups.forEach(groupName => {
+            // Find items for this group
+            const itemsInGroup = allItems.filter(item => item.group === groupName);
+
+            // Find matching enabled rule for this group
+            const matchingRule = groupRules.find(rule =>
+                rule.enabled && rule.groupName === groupName
+            );
+
+            // Create table row for each group
+            const groupRow = document.createElement('div');
+            groupRow.className = 'table-row';
+            groupRow.dataset.groupName = groupName;
+
+            // Build auto badge HTML if there's a matching rule
+            const autoBadgeHtml = matchingRule ?
+                `<span class="auto-badge" data-rule-id="${matchingRule.id}">自动</span>` : '';
+
+            groupRow.innerHTML = `
+                <div class="col-checkbox">
+                    <input type="checkbox" class="group-checkbox" data-group="${groupName}">
+                </div>
+                <div class="col-group-name">
+                    <span class="group-name">${groupName}</span>
+                    <span class="group-count">(${itemsInGroup.length}项)</span>
+                    ${autoBadgeHtml}
+                </div>
+                <div class="col-operation">
+                    <button class="btn btn-primary btn-sm add-to-group" data-group="${groupName}">加入</button>
+                </div>
+            `;
+
+            groupsTableBody.appendChild(groupRow);
+        });
+    };
+
+    // Renders main pagination (left panel)
+    const renderMainPagination = (totalItems) => {
+        const totalPages = Math.ceil(totalItems / mainItemsPerPage);
+        paginationContainer.innerHTML = totalPages > 1 ? `
+            <button class="pagination-btn" id="prev-page" ${mainCurrentPage === 1 ? 'disabled' : ''}>&lt;</button>
+            <span>${mainCurrentPage} / ${totalPages}</span>
+            <button class="pagination-btn" id="next-page" ${mainCurrentPage < totalPages ? '' : 'disabled'}>&gt;</button>
+        ` : '';
+    };
+
+    // Renders nested pagination (right panel) and returns as string
+    const renderNestedPagination = (totalItems, currentPage, groupName) => {
+        const totalPages = Math.ceil(totalItems / nestedItemsPerPage);
+        return totalPages > 1 ? `
+            <div class="pagination nested-pagination">
+                <button class="pagination-btn nested-prev-page" data-group-name="${groupName}" ${currentPage === 1 ? 'disabled' : ''}>&lt;</button>
+                <span>${currentPage} / ${totalPages}</span>
+                <button class="pagination-btn nested-next-page" data-group-name="${groupName}" ${currentPage < totalPages ? '' : 'disabled'}>&gt;</button>
+            </div>
+        ` : '';
+    };
+
+    // Render rule list with enhanced information
+    const renderRuleList = () => {
+        ruleList.innerHTML = '';
+        
+        if (groupRules.length === 0) {
+            ruleList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暂无规则，点击"新建规则"添加</div>';
+            return;
+        }
+
+        groupRules.forEach((rule, index) => {
+            const ruleItem = document.createElement('div');
+            ruleItem.className = 'rule-item';
+            if (rule.stats && rule.stats.conflictCount > 0) {
+                ruleItem.className += ' has-conflict';
+            }
+            ruleItem.dataset.ruleId = rule.id;
+            
+            // Get pattern display text
+            let patternText = '';
+            if (rule.rule) {
+                if (rule.rule.pattern) {
+                    patternText = rule.rule.pattern;
+                } else if (rule.rule.type === 'keywords') {
+                    const includes = rule.rule.includeKeywords || [];
+                    const excludes = rule.rule.excludeKeywords || [];
+                    patternText = `包含: ${includes.join(', ') || '无'} | 排除: ${excludes.join(', ') || '无'}`;
+                }
+            } else if (rule.pattern) {
+                patternText = rule.pattern;
+            }
+
+            ruleItem.innerHTML = `
+                <div class="rule-item-header">
+                    <span class="drag-handle">≡</span>
+                    <input type="checkbox" class="rule-checkbox" ${rule.enabled ? 'checked' : ''}>
+                    <span class="priority-badge">优先级${rule.priority}</span>
+                    <span class="rule-name">${rule.groupName}</span>
+                    ${rule.bindingType === 'create' ? '<span class="binding-badge create">创建分组</span>' : '<span class="binding-badge existing">绑定分组</span>'}
+                    ${rule.stats && rule.stats.conflictCount > 0 ? `<span class="conflict-badge">冲突 ${rule.stats.conflictCount}</span>` : ''}
+                    <div class="rule-actions">
+                        <button class="btn btn-default btn-sm edit-rule">编辑</button>
+                        <button class="btn btn-default btn-sm delete-rule">删除</button>
+                    </div>
+                </div>
+                <div class="rule-pattern">
+                    <strong>${rule.matchMode || rule.rule?.type || 'keywords'}:</strong> ${patternText}
+                </div>
+                <div class="rule-stats">
+                    匹配数：${rule.stats?.matchCount || 0}个维度值
+                    ${rule.stats?.lastMatched ? ` | 最后匹配：${new Date(rule.stats.lastMatched).toLocaleString('zh-CN')}` : ''}
+                </div>
+            `;
+            
+            ruleList.appendChild(ruleItem);
+        });
+    };
+    
+    // 在右侧面板中渲染规则列表
+    const renderRuleListInPanel = () => {
+        ruleTableBody.innerHTML = '';
+
+        // 分离用户规则和系统规则
+        const userRules = groupRules.filter(rule => !rule.isSystemRule);
+        const systemRules = groupRules.filter(rule => rule.isSystemRule);
+
+        // 过滤用户规则
+        const filteredUserRules = userRules.filter(rule => {
+            if (!ruleFilter) return true;
+            const searchText = ruleFilter.toLowerCase();
+            return rule.groupName.toLowerCase().includes(searchText) ||
+                   (rule.rule?.pattern && rule.rule.pattern.toLowerCase().includes(searchText)) ||
+                   (rule.pattern && rule.pattern.toLowerCase().includes(searchText));
+        });
+
+        // 过滤系统规则
+        const filteredSystemRules = systemRules.filter(rule => {
+            if (!ruleFilter) return true;
+            const searchText = ruleFilter.toLowerCase();
+            return rule.groupName.toLowerCase().includes(searchText) ||
+                   rule.name.toLowerCase().includes(searchText);
+        });
+
+        const allFilteredRules = [...filteredUserRules, ...filteredSystemRules];
+
+        if (allFilteredRules.length === 0) {
+            ruleTableBody.innerHTML = '<div style="text-align: center; padding: 40px; color: #999; grid-column: 1 / -1;">暂无匹配的规则</div>';
+            return;
+        }
+
+        allFilteredRules.forEach((rule, index) => {
+            // 获取规则显示文本和完整描述
+            let patternText = '';
+            let fullPatternText = '';
+
+            if (rule.isSystemRule) {
+                patternText = '自动捕获所有未匹配的维度值';
+                fullPatternText = patternText;
+            } else if (rule.rule) {
+                switch (rule.rule.type) {
+                    case 'wildcard':
+                        patternText = rule.rule.pattern || '';
+                        fullPatternText = `通配符匹配: ${patternText}`;
+                        break;
+                    case 'regex':
+                        patternText = rule.rule.pattern || '';
+                        fullPatternText = `正则表达式: ${patternText}`;
+                        break;
+                    case 'exact':
+                        patternText = rule.rule.pattern || '';
+                        fullPatternText = `精确匹配: ${patternText}`;
+                        break;
+                    case 'keywords':
+                        const includes = rule.rule.includeKeywords || [];
+                        const excludes = rule.rule.excludeKeywords || [];
+                        patternText = `包含: ${includes.join(', ') || '无'} | 排除: ${excludes.join(', ') || '无'}`;
+                        fullPatternText = `关键词匹配 - ${patternText}`;
+                        break;
+                    default:
+                        // 兼容旧版本数据结构
+                        patternText = rule.rule.pattern || '';
+                        fullPatternText = patternText;
+                }
+            } else if (rule.pattern) {
+                // 兼容旧版本数据结构
+                patternText = rule.pattern;
+                fullPatternText = patternText;
+            }
+
+            // 处理长文本截断
+            const maxLength = 40;
+            const displayText = patternText.length > maxLength ?
+                patternText.substring(0, maxLength) + '...' : patternText;
+
+            const ruleRow = document.createElement('div');
+            ruleRow.className = rule.isSystemRule ? 'table-row system-rule-row' : 'table-row';
+            if (rule.stats && rule.stats.conflictCount > 0) {
+                ruleRow.className += ' has-conflict';
+            }
+            ruleRow.dataset.ruleId = rule.id;
+
+            // 系统规则的特殊显示
+            const priorityDisplay = rule.isSystemRule ?
+                '<span class="system-rule-priority">兜底规则</span>' :
+                `<span class="rule-priority-badge">优先级${rule.priority}</span>`;
+
+            const dragHandle = rule.isSystemRule ?
+                '<span style="color: #ccc;">🔒</span>' :
+                '<span class="rule-drag-handle" draggable="true">⋮⋮</span>';
+
+            const systemBadge = rule.isSystemRule ?
+                '<span class="system-rule-badge">系统</span>' : '';
+
+            const operationButtons = rule.isSystemRule ?
+                '<span style="color: #999; font-size: 12px;">系统规则</span>' :
+                `<div class="priority-btn-group">
+                    <button class="btn-priority priority-top" data-rule-id="${rule.id}" title="置顶" ${index === 0 ? 'disabled' : ''}>⇈</button>
+                    <button class="btn-priority priority-up" data-rule-id="${rule.id}" title="上移一位" ${index === 0 ? 'disabled' : ''}>↑</button>
+                    <button class="btn-priority priority-down" data-rule-id="${rule.id}" title="下移一位" ${index === allFilteredRules.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button class="btn-priority priority-bottom" data-rule-id="${rule.id}" title="置底" ${index === allFilteredRules.length - 1 ? 'disabled' : ''}>⇊</button>
+                </div>
+                <button class="btn btn-default btn-sm edit-rule-panel" data-rule-id="${rule.id}">⚙</button>`;
+
+            ruleRow.innerHTML = `
+                <div class="col-drag-handle">
+                    ${dragHandle}
+                </div>
+                <div class="col-checkbox">
+                    <input type="checkbox" class="rule-checkbox" data-rule-id="${rule.id}" ${rule.enabled ? 'checked' : ''}>
+                </div>
+                <div class="col-rule-name" title="${fullPatternText}">
+                    ${priorityDisplay}
+                    ${systemBadge}
+                    <span class="rule-pattern-text">${displayText}</span>
+                </div>
+                <div class="col-status">
+                    <span class="${rule.enabled ? 'status-enabled' : 'status-disabled'}">
+                        ${rule.enabled ? '已启用' : '已暂停'}
+                    </span>
+                </div>
+                <div class="col-bound-group">
+                    <div class="bound-group-name">${rule.groupName}</div>
+                    <div style="font-size: 12px; color: #888; margin-top: 2px;">
+                        匹配${rule.stats?.matchCount || 0}项
+                    </div>
+                </div>
+                <div class="col-rule-operation">
+                    ${operationButtons}
+                </div>
+            `;
+
+            ruleTableBody.appendChild(ruleRow);
+        });
+
+        // 更新全选复选框状态
+        updateSelectAllRulesCheckbox();
+    };
+    
+    // 右侧面板中的规则列表事件
+    ruleListContainer.addEventListener('click', (e) => {
+        const tableRow = e.target.closest('.table-row');
+        if (!tableRow) return;
+
+        const ruleId = tableRow.dataset.ruleId;
+        const rule = groupRules.find(r => r.id === ruleId);
+
+        // 编辑规则
+        if (e.target.classList.contains('edit-rule-panel')) {
+            // 防止编辑系统规则
+            if (rule.isSystemRule) {
+                alert('系统规则不能编辑');
+                return;
+            }
+
+            editingRuleId = ruleId;
+            document.getElementById('rule-editor-title').textContent = '编辑分组规则';
+
+            // 填充已有分组下拉框
+            const groupSelect = document.getElementById('rule-group-select');
+            groupSelect.innerHTML = '<option value="">请选择分组</option>';
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                if (rule.bindingType === 'existing' && group === rule.groupName) {
+                    option.selected = true;
+                }
+                groupSelect.appendChild(option);
+            });
+            
+            // 设置绑定类型
+            const bindingType = rule.bindingType || 'existing';
+            document.querySelector(`input[name="binding-type"][value="${bindingType}"]`).checked = true;
+            
+            // 根据绑定类型设置分组名称
+            if (bindingType === 'create') {
+                document.getElementById('rule-group-name').value = rule.groupName;
+            }
+            
+            // 设置匹配模式
+            const matchMode = rule.matchMode || rule.rule?.type || 'keywords';
+            document.querySelector(`input[name="match-mode"][value="${matchMode}"]`).checked = true;
+            
+            // 设置匹配模式
+            document.getElementById('wildcard-pattern').value = rule.rule?.pattern || '';
+            
+            // 如果是关键词模式，加载关键词
+            if (matchMode === 'keywords' && rule.rule) {
+                // 清除现有关键词
+                includeKeywords = [];
+                excludeKeywords = [];
+                document.getElementById('include-keywords').innerHTML = '';
+                document.getElementById('exclude-keywords').innerHTML = '';
+                
+                // 加载包含关键词
+                if (rule.rule.includeKeywords) {
+                    rule.rule.includeKeywords.forEach(keyword => {
+                        const container = document.getElementById('include-keywords');
+                        addKeywordInput(container, includeKeywords, '输入包含关键词');
+                        const inputs = container.querySelectorAll('input');
+                        const lastInput = inputs[inputs.length - 1];
+                        lastInput.value = keyword;
+                        includeKeywords[includeKeywords.length - 1] = keyword;
+                    });
+                }
+                
+                // 加载排除关键词
+                if (rule.rule.excludeKeywords) {
+                    rule.rule.excludeKeywords.forEach(keyword => {
+                        const container = document.getElementById('exclude-keywords');
+                        addKeywordInput(container, excludeKeywords, '输入排除关键词');
+                        const inputs = container.querySelectorAll('input');
+                        const lastInput = inputs[inputs.length - 1];
+                        lastInput.value = keyword;
+                        excludeKeywords[excludeKeywords.length - 1] = keyword;
+                    });
+                }
+            }
+            
+            // 根据绑定类型更新UI
+            updateBindingTypeUI();
+            
+            // 更新匹配模式UI
+            updateMatchModeUI();
+            
+            ruleEditorModal.classList.add('show');
+        }
+    });
+
+    // --- 5. EVENT HANDLERS & LOGIC ---
+
+    // Search listeners
+    searchItemsInput.addEventListener('input', (e) => {
+        itemFilter = e.target.value;
+        mainCurrentPage = 1;
+        renderItems();
+    });
+    searchGroupsInput.addEventListener('input', (e) => {
+        groupFilter = e.target.value;
+        renderGroups();
+    });
+
+    // Main pagination clicks
+    paginationContainer.addEventListener('click', (e) => {
+        if (e.target.id === 'prev-page' && mainCurrentPage > 1) {
+            mainCurrentPage--;
+            renderItems();
+        }
+        if (e.target.id === 'next-page' && !e.target.disabled) {
+            mainCurrentPage++;
+            renderItems();
+        }
+    });
+
+    // "Select All" logic
+    selectAllCheckbox.addEventListener('change', () => {
+        itemsContainer.querySelectorAll('.item-checkbox').forEach(c => c.checked = selectAllCheckbox.checked);
+    });
+    const updateSelectAllCheckbox = () => {
+        const checkboxes = itemsContainer.querySelectorAll('.item-checkbox');
+        selectAllCheckbox.checked = checkboxes.length > 0 && Array.from(checkboxes).every(c => c.checked);
+    }
+    itemsContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('item-checkbox')) updateSelectAllCheckbox();
+    });
+
+    // Group selection functionality
+    const updateSelectAllGroupsCheckbox = () => {
+        const groupCheckboxes = groupsTableBody.querySelectorAll('.group-checkbox');
+        selectAllGroupsCheckbox.checked = groupCheckboxes.length > 0 && Array.from(groupCheckboxes).every(c => c.checked);
+    };
+
+    selectAllGroupsCheckbox.addEventListener('change', () => {
+        const groupCheckboxes = groupsTableBody.querySelectorAll('.group-checkbox');
+        groupCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllGroupsCheckbox.checked;
+        });
+    });
+
+    groupsContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('group-checkbox')) updateSelectAllGroupsCheckbox();
+    });
+
+    // Tooltip functionality for auto badges
+    let currentTooltip = null;
+
+    const showTooltip = (element, content) => {
+        hideTooltip();
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip show';
+        tooltip.innerHTML = content;
+        document.body.appendChild(tooltip);
+
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        tooltip.style.left = (rect.left + rect.width / 2 - tooltipRect.width / 2) + 'px';
+        tooltip.style.top = (rect.top - tooltipRect.height - 8) + 'px';
+
+        currentTooltip = tooltip;
+    };
+
+    const hideTooltip = () => {
+        if (currentTooltip) {
+            currentTooltip.remove();
+            currentTooltip = null;
+        }
+    };
+
+    // Auto badge hover events
+    groupsContainer.addEventListener('mouseenter', (e) => {
+        if (e.target.classList.contains('auto-badge')) {
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+
+            if (rule) {
+                let ruleDetails = '';
+                switch (rule.rule.type) {
+                    case 'wildcard':
+                        ruleDetails = `通配符匹配: ${rule.rule.pattern}`;
+                        break;
+                    case 'regex':
+                        ruleDetails = `正则表达式: ${rule.rule.pattern}`;
+                        break;
+                    case 'exact':
+                        ruleDetails = `精确匹配: ${rule.rule.pattern}`;
+                        break;
+                    case 'keywords':
+                        const includes = rule.rule.includeKeywords?.length ?
+                            `包含: ${rule.rule.includeKeywords.join(', ')}` : '';
+                        const excludes = rule.rule.excludeKeywords?.length ?
+                            `排除: ${rule.rule.excludeKeywords.join(', ')}` : '';
+                        ruleDetails = [includes, excludes].filter(Boolean).join('<br>');
+                        break;
+                    default:
+                        ruleDetails = '未知规则类型';
+                }
+
+                const tooltipContent = `
+                    <strong>${rule.name}</strong><br>
+                    优先级: ${rule.priority}<br>
+                    ${ruleDetails}<br>
+                    匹配数量: ${rule.stats?.matchCount || 0}项
+                `;
+
+                showTooltip(e.target, tooltipContent);
+            }
+        }
+    }, true);
+
+    groupsContainer.addEventListener('mouseleave', (e) => {
+        if (e.target.classList.contains('auto-badge')) {
+            hideTooltip();
+        }
+    }, true);
+
+    // Rule search functionality
+    searchRulesInput.addEventListener('input', (e) => {
+        ruleFilter = e.target.value.toLowerCase();
+        renderRuleListInPanel();
+    });
+
+    // Rule selection functionality
+    selectAllRulesCheckbox.addEventListener('change', () => {
+        const ruleCheckboxes = ruleTableBody.querySelectorAll('.rule-checkbox');
+        ruleCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllRulesCheckbox.checked;
+        });
+        updateBatchButtonsState();
+    });
+
+    // Right panel event delegation for new table structure
+    groupsContainer.addEventListener('click', (e) => {
+        const tableRow = e.target.closest('.table-row');
+        if (!tableRow) return;
+        const groupName = tableRow.dataset.groupName;
+
+        // Add selected items to this group
+        if (e.target.classList.contains('add-to-group')) {
+            const selectedCheckboxes = itemsContainer.querySelectorAll('.item-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('请先在左侧勾选要分组的项！');
+                return;
+            }
+            selectedCheckboxes.forEach(checkbox => {
+                const item = allItems.find(i => i.id === parseInt(checkbox.dataset.id));
+                if (item) {
+                    item.group = groupName;
+                    item.isAutoGrouped = false; // Manual grouping overrides auto
+                }
+            });
+            alert(`已将 ${selectedCheckboxes.length} 个项目移动到 "${groupName}" 分组。`);
+            renderAll();
+        }
+
+
+
+        // Remove an item from this group
+        if (e.target.classList.contains('delete-item')) {
+            const itemId = parseInt(e.target.dataset.itemId);
+            const item = allItems.find(i => i.id === itemId);
+            if (item) {
+                item.group = '待分组';
+                item.isAutoGrouped = false;
+                // Reset pagination for the group if it becomes empty on the current page
+                const itemsLeftInGroup = allItems.filter(i => i.group === groupName);
+                const totalPages = Math.ceil(itemsLeftInGroup.length / nestedItemsPerPage);
+                if (groupPagination[groupName] > totalPages && totalPages > 0) {
+                    groupPagination[groupName] = totalPages;
+                }
+            }
+            renderAll();
+        }
+
+        // Nested pagination
+        const currentPage = groupPagination[groupName] || 1;
+        if (e.target.classList.contains('nested-prev-page') && currentPage > 1) {
+            groupPagination[groupName] = currentPage - 1;
+            renderGroups();
+        }
+        if (e.target.classList.contains('nested-next-page') && !e.target.disabled) {
+            groupPagination[groupName] = currentPage + 1;
+            renderGroups();
+        }
+    });
+
+    // "New Group" button
+    btnNewGroup.addEventListener('click', () => {
+        const newGroupName = prompt('请输入新的分组名称:');
+        if (newGroupName && newGroupName.trim() && !groups.includes(newGroupName.trim())) {
+            groups.push(newGroupName.trim());
+            groups.sort();
+            renderGroups();
+        } else if (newGroupName) {
+            alert('分组名称已存在或无效。');
+        }
+    });
+
+    // "Match Groups" button - Auto match items to selected groups
+    btnMatchGroups.addEventListener('click', () => {
+        // Get selected groups
+        const selectedGroupCheckboxes = document.querySelectorAll('.group-checkbox:checked');
+        if (selectedGroupCheckboxes.length === 0) {
+            alert('请先选择要进行匹配的分组');
+            return;
+        }
+
+        const selectedGroupNames = Array.from(selectedGroupCheckboxes).map(cb => cb.dataset.group);
+        let totalMatched = 0;
+        let matchResults = [];
+
+        // Process each selected group
+        selectedGroupNames.forEach(groupName => {
+            // Find enabled rule for this group
+            const matchingRule = groupRules.find(rule =>
+                rule.enabled && rule.groupName === groupName
+            );
+
+            if (!matchingRule) {
+                matchResults.push(`${groupName}: 未绑定启用的匹配规则`);
+                return;
+            }
+
+            // Find unassigned items that match this rule
+            const unassignedItems = allItems.filter(item => item.group === '待分组');
+            let groupMatched = 0;
+
+            unassignedItems.forEach(item => {
+                if (matchRule(item.name, matchingRule.rule || matchingRule)) {
+                    item.group = groupName;
+                    item.isAutoGrouped = true;
+                    item.appliedRuleId = matchingRule.id;
+                    groupMatched++;
+                    totalMatched++;
+                }
+            });
+
+            // Update rule stats
+            matchingRule.stats.matchCount = (matchingRule.stats.matchCount || 0) + groupMatched;
+            if (groupMatched > 0) {
+                matchingRule.stats.lastMatched = new Date().toISOString();
+            }
+
+            matchResults.push(`${groupName}: 匹配了 ${groupMatched} 项`);
+        });
+
+        // Show results
+        const resultMessage = `匹配完成！\n\n${matchResults.join('\n')}\n\n总计匹配: ${totalMatched} 项`;
+        alert(resultMessage);
+
+        // Refresh all displays
+        renderAll();
+
+        // Clear group selections
+        selectedGroupCheckboxes.forEach(cb => cb.checked = false);
+        updateSelectAllGroupsCheckbox();
+    });
+
+    // Add tooltip for match button
+    btnMatchGroups.addEventListener('mouseenter', () => {
+        const tooltipContent = '点击后已绑定规则的分组将会自动将符合匹配规则，且未分组的维度值加入对应分组';
+        showTooltip(btnMatchGroups, tooltipContent);
+    });
+
+    btnMatchGroups.addEventListener('mouseleave', () => {
+        hideTooltip();
+    });
+
+    // Rule management events - 新建规则按钮（首页）
+    document.getElementById('btn-new-rule-main').addEventListener('click', (e) => {
+        e.stopPropagation();
+        editingRuleId = null;
+        document.getElementById('rule-editor-title').textContent = '新建分组规则';
+        document.getElementById('rule-editor-form').reset();
+        
+        // Reset keywords
+        includeKeywords = [];
+        excludeKeywords = [];
+        document.getElementById('include-keywords').innerHTML = '';
+        document.getElementById('exclude-keywords').innerHTML = '';
+
+        // Reset priority configuration
+        priorityConfig = { type: 'lowest', afterRuleId: null };
+        document.getElementById('priority-select').value = 'lowest';
+        document.getElementById('priority-section').style.display = 'block';
+
+        // Update priority options when modal opens
+        updatePriorityOptions();
+
+        // Populate existing groups dropdown
+        const groupSelect = document.getElementById('rule-group-select');
+        groupSelect.innerHTML = '<option value="">请选择分组</option>';
+        groups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+        });
+        
+        // Show/hide sections based on binding type
+        updateBindingTypeUI();
+        
+        // Update match mode sections
+        updateMatchModeUI();
+        
+        ruleEditorModal.classList.add('show');
+    });
+
+    // Close modals
+    document.getElementById('close-rule-modal').addEventListener('click', () => {
+        ruleModal.classList.remove('show');
+    });
+    document.getElementById('cancel-rule-modal').addEventListener('click', () => {
+        ruleModal.classList.remove('show');
+    });
+    document.getElementById('save-rule-modal').addEventListener('click', () => {
+        applyRules();
+        ruleModal.classList.remove('show');
+    });
+
+    // New rule button
+    btnNewRule.addEventListener('click', () => {
+        editingRuleId = null;
+        document.getElementById('rule-editor-title').textContent = '新建分组规则';
+        document.getElementById('rule-editor-form').reset();
+        
+        // Reset keywords
+        includeKeywords = [];
+        excludeKeywords = [];
+        document.getElementById('include-keywords').innerHTML = '';
+        document.getElementById('exclude-keywords').innerHTML = '';
+
+        // Reset priority configuration
+        priorityConfig = { type: 'lowest', afterRuleId: null };
+        document.getElementById('priority-select').value = 'lowest';
+        document.getElementById('priority-section').style.display = 'block';
+
+        // Update priority options when modal opens
+        updatePriorityOptions();
+
+        // Populate existing groups dropdown
+        const groupSelect = document.getElementById('rule-group-select');
+        groupSelect.innerHTML = '<option value="">请选择分组</option>';
+        groups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+        });
+        
+        // Show/hide sections based on binding type
+        updateBindingTypeUI();
+        
+        // Update match mode sections
+        updateMatchModeUI();
+        
+        ruleEditorModal.classList.add('show');
+    });
+    
+    // Binding type radio button change handler
+    document.querySelectorAll('input[name="binding-type"]').forEach(radio => {
+        radio.addEventListener('change', updateBindingTypeUI);
+    });
+    
+    function updateBindingTypeUI() {
+        const bindingType = document.querySelector('input[name="binding-type"]:checked').value;
+        const existingGroupSection = document.getElementById('existing-group-section');
+        const newGroupSection = document.getElementById('new-group-section');
+        
+        if (bindingType === 'existing') {
+            existingGroupSection.style.display = 'block';
+            newGroupSection.style.display = 'none';
+        } else {
+            existingGroupSection.style.display = 'none';
+            newGroupSection.style.display = 'block';
+        }
+    }
+
+    // Rule editor modal events
+    document.getElementById('close-rule-editor').addEventListener('click', () => {
+        ruleEditorModal.classList.remove('show');
+    });
+    document.getElementById('cancel-rule-editor').addEventListener('click', () => {
+        ruleEditorModal.classList.remove('show');
+    });
+
+    // Save rule with enhanced data structure
+    document.getElementById('save-rule-editor').addEventListener('click', () => {
+        const bindingType = document.querySelector('input[name="binding-type"]:checked').value;
+        const matchMode = document.querySelector('input[name="match-mode"]:checked').value;
+        
+        let groupName = '';
+        if (bindingType === 'existing') {
+            groupName = document.getElementById('rule-group-select').value;
+            if (!groupName) {
+                alert('请选择一个分组');
+                return;
+            }
+        } else {
+            groupName = document.getElementById('rule-group-name').value.trim();
+            if (!groupName) {
+                alert('请输入新分组名称');
+                return;
+            }
+        }
+
+        // Build rule object based on match mode
+        let ruleObj = { type: matchMode };
+        
+        if (matchMode === 'wildcard' || matchMode === 'regex') {
+            const pattern = document.getElementById('wildcard-pattern').value.trim();
+            if (!pattern) {
+                alert('请输入匹配规则');
+                return;
+            }
+            ruleObj.pattern = pattern;
+        } else if (matchMode === 'keywords') {
+            // Collect keywords from UI
+            const validIncludeKeywords = includeKeywords.filter(k => k.trim() !== '');
+            const validExcludeKeywords = excludeKeywords.filter(k => k.trim() !== '');
+            
+            if (validIncludeKeywords.length === 0 && validExcludeKeywords.length === 0) {
+                alert('请至少添加一个包含关键词或排除关键词');
+                return;
+            }
+            
+            ruleObj.includeKeywords = validIncludeKeywords;
+            ruleObj.excludeKeywords = validExcludeKeywords;
+        }
+
+        // Calculate priority based on priority configuration
+        let newPriority;
+        if (editingRuleId) {
+            // Keep existing priority when editing
+            newPriority = groupRules.find(r => r.id === editingRuleId).priority;
+        } else {
+            // Calculate new priority based on priority config
+            newPriority = calculateNewRulePriority();
+        }
+
+        const ruleData = {
+            id: editingRuleId,
+            name: `${groupName} - ${matchMode}`,
+            groupName: groupName,
+            bindingType: bindingType,
+            matchMode: matchMode,
+            rule: ruleObj,
+            priority: newPriority,
+            enabled: true
+        };
+
+        const newRule = createRule(ruleData);
+
+        if (editingRuleId) {
+            const index = groupRules.findIndex(r => r.id === editingRuleId);
+            groupRules[index] = newRule;
+        } else {
+            // Insert new rule and adjust priorities of other rules
+            insertNewRuleWithPriority(newRule);
+        }
+
+        // Save to localStorage
+        saveRulesToStorage();
+        
+        renderRuleList();
+        ruleEditorModal.classList.remove('show');
+    });
+
+    // Rule list events
+    ruleList.addEventListener('click', (e) => {
+        const ruleItem = e.target.closest('.rule-item');
+        if (!ruleItem) return;
+        
+        const ruleId = ruleItem.dataset.ruleId;
+        const rule = groupRules.find(r => r.id === ruleId);
+
+        // Edit rule with enhanced data
+        if (e.target.classList.contains('edit-rule')) {
+            editingRuleId = ruleId;
+            document.getElementById('rule-editor-title').textContent = '编辑分组规则';
+            
+            // Populate existing groups dropdown
+            const groupSelect = document.getElementById('rule-group-select');
+            groupSelect.innerHTML = '<option value="">请选择分组</option>';
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                if (rule.bindingType === 'existing' && group === rule.groupName) {
+                    option.selected = true;
+                }
+                groupSelect.appendChild(option);
+            });
+            
+            // Set binding type
+            const bindingType = rule.bindingType || 'existing';
+            document.querySelector(`input[name="binding-type"][value="${bindingType}"]`).checked = true;
+            
+            // Set group name based on binding type
+            if (bindingType === 'create') {
+                document.getElementById('rule-group-name').value = rule.groupName;
+            }
+            
+            // Set match mode
+            const matchMode = rule.matchMode || rule.rule?.type || 'keywords';
+            document.querySelector(`input[name="match-mode"][value="${matchMode}"]`).checked = true;
+            
+            // Set pattern
+            document.getElementById('wildcard-pattern').value = rule.rule?.pattern || '';
+            
+            // Load keywords if in keywords mode
+            if (matchMode === 'keywords' && rule.rule) {
+                // Clear existing keywords
+                includeKeywords = [];
+                excludeKeywords = [];
+                document.getElementById('include-keywords').innerHTML = '';
+                document.getElementById('exclude-keywords').innerHTML = '';
+                
+                // Load include keywords
+                if (rule.rule.includeKeywords) {
+                    rule.rule.includeKeywords.forEach(keyword => {
+                        const container = document.getElementById('include-keywords');
+                        addKeywordInput(container, includeKeywords, '输入包含关键词');
+                        const inputs = container.querySelectorAll('input');
+                        const lastInput = inputs[inputs.length - 1];
+                        lastInput.value = keyword;
+                        includeKeywords[includeKeywords.length - 1] = keyword;
+                    });
+                }
+                
+                // Load exclude keywords
+                if (rule.rule.excludeKeywords) {
+                    rule.rule.excludeKeywords.forEach(keyword => {
+                        const container = document.getElementById('exclude-keywords');
+                        addKeywordInput(container, excludeKeywords, '输入排除关键词');
+                        const inputs = container.querySelectorAll('input');
+                        const lastInput = inputs[inputs.length - 1];
+                        lastInput.value = keyword;
+                        excludeKeywords[excludeKeywords.length - 1] = keyword;
+                    });
+                }
+            }
+            
+            // Update UI based on binding type
+            updateBindingTypeUI();
+            
+            // Update match mode sections
+            updateMatchModeUI();
+            
+            ruleEditorModal.classList.add('show');
+        }
+
+        // Delete rule
+        if (e.target.classList.contains('delete-rule')) {
+            if (confirm(`确定要删除规则"${rule.groupName}"吗？`)) {
+                groupRules = groupRules.filter(r => r.id !== ruleId);
+                // Reorder priorities
+                groupRules.forEach((r, index) => {
+                    r.priority = index + 1;
+                });
+                renderRuleList();
+            }
+        }
+
+        // Toggle enabled
+        if (e.target.classList.contains('rule-checkbox')) {
+            rule.enabled = e.target.checked;
+            updateRuleCount();
+        }
+    });
+
+    // Match mode toggle with enhanced support
+    document.querySelectorAll('input[name="match-mode"]').forEach(radio => {
+        radio.addEventListener('change', updateMatchModeUI);
+    });
+    
+    function updateMatchModeUI() {
+        const matchMode = document.querySelector('input[name="match-mode"]:checked').value;
+        const wildcardSection = document.getElementById('wildcard-section');
+        const keywordsSection = document.getElementById('keywords-section');
+        const patternLabel = wildcardSection.querySelector('.form-label');
+        const patternInput = document.getElementById('wildcard-pattern');
+        const inputHint = document.getElementById('wildcard-hint');
+        const wildcardHelpPanel = document.getElementById('wildcard-help-panel');
+        const regexHelpPanel = document.getElementById('regex-help-panel');
+
+        // Reset sections
+        wildcardSection.style.display = 'none';
+        keywordsSection.style.display = 'none';
+        wildcardHelpPanel.style.display = 'none';
+        regexHelpPanel.style.display = 'none';
+
+        switch (matchMode) {
+            case 'keywords':
+                keywordsSection.style.display = 'block';
+                break;
+
+            case 'wildcard':
+                wildcardSection.style.display = 'block';
+                patternLabel.innerHTML = '匹配规则<span class="required">*</span>';
+                patternInput.placeholder = '例如：头条*';
+                inputHint.innerHTML = '使用 * 代表任意字符，如 "头条*" 匹配所有以"头条"开头的维度值 <a href="javascript:void(0)" class="help-link" id="wildcard-help-btn">详细规则</a>';
+
+                // Setup help button for wildcard
+                document.getElementById('wildcard-help-btn').onclick = function() {
+                    wildcardHelpPanel.style.display = 'block';
+                };
+                document.getElementById('close-wildcard-help').onclick = function() {
+                    wildcardHelpPanel.style.display = 'none';
+                };
+                break;
+
+            case 'regex':
+                wildcardSection.style.display = 'block';
+                patternLabel.innerHTML = '正则表达式<span class="required">*</span>';
+                patternInput.placeholder = '例如：^头条.*';
+                inputHint.innerHTML = '使用正则表达式进行精确匹配，如 "^头条.*" 匹配以"头条"开头的维度值 <a href="javascript:void(0)" class="help-link" id="regex-help-btn">详细规则</a>';
+
+                // Setup help button for regex
+                document.getElementById('regex-help-btn').onclick = function() {
+                    regexHelpPanel.style.display = 'block';
+                };
+                document.getElementById('close-regex-help').onclick = function() {
+                    regexHelpPanel.style.display = 'none';
+                };
+                break;
+        }
+
+        // Trigger preview update
+        updatePreview();
+    }
+
+    // Keyword management functions
+    let includeKeywords = [];
+    let excludeKeywords = [];
+
+    // Priority configuration state
+    let priorityConfig = {
+        type: 'lowest', // 'highest', 'after', 'lowest'
+        afterRuleId: null
+    };
+
+    // Update priority section (now always visible, just update options)
+    function updatePrioritySection() {
+        updatePriorityOptions();
+    }
+
+    // Update priority options based on existing rules
+    function updatePriorityOptions() {
+        const prioritySelect = document.getElementById('priority-select');
+
+        // Store current selection
+        const currentValue = prioritySelect.value;
+
+        // Clear existing options
+        prioritySelect.innerHTML = '';
+
+        // Add "最高优先级" option
+        const highestOption = document.createElement('option');
+        highestOption.value = 'highest';
+        highestOption.textContent = '最高优先级';
+        prioritySelect.appendChild(highestOption);
+
+        // Get existing rules (exclude current editing rule if any)
+        const existingRules = groupRules.filter(rule =>
+            !rule.isSystemRule &&
+            rule.enabled &&
+            rule.id !== editingRuleId
+        ).sort((a, b) => a.priority - b.priority);
+
+        // Add existing rules as "after" options
+        existingRules.forEach(rule => {
+            const option = document.createElement('option');
+            option.value = rule.id;
+            // Extract rule pattern for display
+            let rulePattern = '';
+            if (rule.rule.type === 'keywords') {
+                const includes = rule.rule.includeKeywords || [];
+                const excludes = rule.rule.excludeKeywords || [];
+                rulePattern = includes.join(', ');
+                if (excludes.length > 0) {
+                    rulePattern += ` (排除: ${excludes.join(', ')})`;
+                }
+            } else {
+                rulePattern = rule.rule.pattern || '';
+            }
+            option.textContent = `<${rulePattern}>之后`;
+            prioritySelect.appendChild(option);
+        });
+
+        // Add "最低优先级" option
+        const lowestOption = document.createElement('option');
+        lowestOption.value = 'lowest';
+        lowestOption.textContent = '最低优先级';
+        prioritySelect.appendChild(lowestOption);
+
+        // Restore selection or default to "lowest"
+        if (currentValue && prioritySelect.querySelector(`option[value="${currentValue}"]`)) {
+            prioritySelect.value = currentValue;
+        } else {
+            prioritySelect.value = 'lowest';
+            priorityConfig.type = 'lowest';
+            priorityConfig.afterRuleId = null;
+        }
+    }
+
+    const addKeywordInput = (container, keywords, placeholder) => {
+        const keywordDiv = document.createElement('div');
+        keywordDiv.className = 'keyword-input-group';
+        keywordDiv.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px; gap: 8px;';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-input';
+        input.placeholder = placeholder;
+        input.style.flex = '1';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-default btn-sm';
+        removeBtn.textContent = '删除';
+        removeBtn.style.flexShrink = '0';
+        
+        removeBtn.addEventListener('click', () => {
+            const index = Array.from(container.children).indexOf(keywordDiv);
+            keywords.splice(index, 1);
+            keywordDiv.remove();
+            updatePreview();
+        });
+
+        input.addEventListener('input', () => {
+            const index = Array.from(container.children).indexOf(keywordDiv);
+            keywords[index] = input.value.trim();
+            clearTimeout(previewTimeout);
+            previewTimeout = setTimeout(() => {
+                updatePreview();
+            }, 500);
+        });
+        
+        keywordDiv.appendChild(input);
+        keywordDiv.appendChild(removeBtn);
+        container.appendChild(keywordDiv);
+        
+        keywords.push('');
+        input.focus();
+    };
+
+    // Add keyword buttons
+    document.getElementById('add-include-keyword').addEventListener('click', () => {
+        const container = document.getElementById('include-keywords');
+        addKeywordInput(container, includeKeywords, '输入包含关键词');
+    });
+
+    document.getElementById('add-exclude-keyword').addEventListener('click', () => {
+        const container = document.getElementById('exclude-keywords');
+        addKeywordInput(container, excludeKeywords, '输入排除关键词');
+    });
+
+    // Priority configuration event listeners
+    document.getElementById('priority-select').addEventListener('change', (e) => {
+        const selectedValue = e.target.value;
+
+        if (selectedValue === 'highest') {
+            priorityConfig.type = 'highest';
+            priorityConfig.afterRuleId = null;
+        } else if (selectedValue === 'lowest') {
+            priorityConfig.type = 'lowest';
+            priorityConfig.afterRuleId = null;
+        } else {
+            // It's a rule ID, meaning "after" this rule
+            priorityConfig.type = 'after';
+            priorityConfig.afterRuleId = selectedValue;
+        }
+
+        // Update preview when priority changes
+        updatePreview();
+    });
+
+    // Real-time preview
+    let previewTimeout;
+    document.getElementById('wildcard-pattern').addEventListener('input', (e) => {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+            updatePreview();
+        }, 500);
+    });
+
+    const updatePreview = () => {
+        // Check if matching rule is configured
+        const matchMode = document.querySelector('input[name="match-mode"]:checked').value;
+        let isRuleConfigured = false;
+
+        if (matchMode === 'keywords') {
+            const validIncludeKeywords = includeKeywords.filter(k => k.trim() !== '');
+            const validExcludeKeywords = excludeKeywords.filter(k => k.trim() !== '');
+            isRuleConfigured = validIncludeKeywords.length > 0 || validExcludeKeywords.length > 0;
+        } else {
+            const pattern = document.getElementById('wildcard-pattern').value.trim();
+            isRuleConfigured = pattern !== '';
+        }
+
+        // If matching rule is not configured, show simple preview
+        if (!isRuleConfigured) {
+            showSimplePreview();
+            return;
+        }
+
+        // Show enhanced preview with all rules simulation
+        showEnhancedPreview();
+    };
+
+    // Simple preview for when priority is not configured
+    const showSimplePreview = () => {
+        const matchMode = document.querySelector('input[name="match-mode"]:checked').value;
+        const previewStats = document.getElementById('preview-stats');
+        const previewList = document.getElementById('preview-list');
+        const previewConflicts = document.getElementById('preview-conflicts');
+        const previewMore = document.getElementById('preview-more');
+
+        // Hide conflicts section
+        previewConflicts.style.display = 'none';
+
+        // Build test rule based on match mode
+        let testRule = { type: matchMode };
+
+        if (matchMode === 'keywords') {
+            const validIncludeKeywords = includeKeywords.filter(k => k.trim() !== '');
+            const validExcludeKeywords = excludeKeywords.filter(k => k.trim() !== '');
+
+            testRule.includeKeywords = validIncludeKeywords;
+            testRule.excludeKeywords = validExcludeKeywords;
+
+            if (validIncludeKeywords.length === 0 && validExcludeKeywords.length === 0) {
+                previewStats.innerHTML = '<div class="stat-item">请添加关键词以查看匹配结果</div>';
+                previewList.innerHTML = '';
+                previewMore.style.display = 'none';
+                return;
+            }
+        } else {
+            const pattern = document.getElementById('wildcard-pattern').value.trim();
+            if (!pattern) {
+                previewStats.innerHTML = '<div class="stat-item">请输入匹配规则以查看预览</div>';
+                previewList.innerHTML = '';
+                previewMore.style.display = 'none';
+                return;
+            }
+            testRule.pattern = pattern;
+        }
+
+        // Find matches
+        const matches = allItems.filter(item =>
+            item.group === '待分组' && matchRule(item.name, testRule)
+        );
+
+        // Update stats
+        previewStats.innerHTML = `<div class="stat-item">当前规则将匹配 <strong>${matches.length}</strong> 个维度值</div>`;
+
+        // Update list
+        previewList.innerHTML = '';
+        if (matches.length === 0) {
+            previewList.innerHTML = '<div style="color: #999;">没有匹配的维度值</div>';
+        } else {
+            const displayCount = Math.min(matches.length, 5);
+            for (let i = 0; i < displayCount; i++) {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.textContent = matches[i].name;
+                previewList.appendChild(div);
+            }
+        }
+
+        previewMore.style.display = matches.length > 5 ? 'block' : 'none';
+    };
+
+    // Enhanced preview with all rules simulation
+    const showEnhancedPreview = () => {
+        const matchMode = document.querySelector('input[name="match-mode"]:checked').value;
+        const bindingType = document.querySelector('input[name="binding-type"]:checked').value;
+        const previewStats = document.getElementById('preview-stats');
+        const previewList = document.getElementById('preview-list');
+        const previewConflicts = document.getElementById('preview-conflicts');
+        const previewMore = document.getElementById('preview-more');
+
+        // Get group name
+        let groupName;
+        if (bindingType === 'existing') {
+            groupName = document.getElementById('rule-group-select').value;
+        } else {
+            groupName = document.getElementById('rule-group-name').value.trim();
+        }
+
+        if (!groupName) {
+            previewStats.innerHTML = '<div class="stat-item">请先选择或输入分组名称</div>';
+            previewList.innerHTML = '';
+            previewConflicts.style.display = 'none';
+            previewMore.style.display = 'none';
+            return;
+        }
+
+        // Build new rule
+        let newRule = { type: matchMode };
+
+        if (matchMode === 'keywords') {
+            const validIncludeKeywords = includeKeywords.filter(k => k.trim() !== '');
+            const validExcludeKeywords = excludeKeywords.filter(k => k.trim() !== '');
+
+            if (validIncludeKeywords.length === 0 && validExcludeKeywords.length === 0) {
+                previewStats.innerHTML = '<div class="stat-item">请添加关键词以查看匹配结果</div>';
+                previewList.innerHTML = '';
+                previewConflicts.style.display = 'none';
+                previewMore.style.display = 'none';
+                return;
+            }
+
+            newRule.includeKeywords = validIncludeKeywords;
+            newRule.excludeKeywords = validExcludeKeywords;
+        } else {
+            const pattern = document.getElementById('wildcard-pattern').value.trim();
+            if (!pattern) {
+                previewStats.innerHTML = '<div class="stat-item">请输入匹配规则以查看预览</div>';
+                previewList.innerHTML = '';
+                previewConflicts.style.display = 'none';
+                previewMore.style.display = 'none';
+                return;
+            }
+            newRule.pattern = pattern;
+        }
+
+        // Simulate rules with new rule included
+        const simulationResult = simulateRulesWithNewRule(newRule, groupName);
+
+        // Update stats
+        const newRuleMatches = simulationResult.newRuleMatches;
+        const conflicts = simulationResult.conflicts;
+        const totalProcessed = simulationResult.totalProcessed;
+
+        let statsHtml = `<div class="stat-item">新规则将匹配 <strong>${newRuleMatches.length}</strong> 个维度值</div>`;
+        statsHtml += `<div class="stat-item">总共处理 <strong>${totalProcessed}</strong> 个待分组维度值</div>`;
+
+        if (conflicts.length > 0) {
+            statsHtml += `<div class="stat-item" style="color: #fa8c16;">检测到 <strong>${conflicts.length}</strong> 个潜在冲突</div>`;
+        }
+
+        previewStats.innerHTML = statsHtml;
+
+        // Update list - show new rule matches
+        previewList.innerHTML = '';
+        if (newRuleMatches.length === 0) {
+            previewList.innerHTML = '<div style="color: #999;">新规则没有匹配的维度值</div>';
+        } else {
+            const displayCount = Math.min(newRuleMatches.length, 5);
+            for (let i = 0; i < displayCount; i++) {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.textContent = `${newRuleMatches[i].name} → ${groupName}`;
+                previewList.appendChild(div);
+            }
+        }
+
+        previewMore.style.display = newRuleMatches.length > 5 ? 'block' : 'none';
+
+        // Update conflicts
+        if (conflicts.length > 0) {
+            previewConflicts.style.display = 'block';
+            let conflictsHtml = '<div class="conflict-warning">⚠️ 检测到以下冲突或重叠：</div>';
+
+            conflicts.forEach(conflict => {
+                conflictsHtml += `<div class="conflict-item">${conflict.itemName}: ${conflict.description}</div>`;
+            });
+
+            previewConflicts.innerHTML = conflictsHtml;
+        } else {
+            previewConflicts.style.display = 'none';
+        }
+    };
+
+    // Simulate rules execution with new rule included
+    const simulateRulesWithNewRule = (newRule, groupName) => {
+        // Create temporary rule object
+        const tempRule = {
+            id: 'temp_new_rule',
+            name: `${groupName} - 新规则`,
+            groupName: groupName,
+            rule: newRule,
+            enabled: true,
+            isSystemRule: false,
+            priority: calculateNewRulePriority()
+        };
+
+        // Create temporary rules list with new rule inserted
+        const tempRules = [...groupRules.filter(r => !r.isSystemRule && r.enabled && r.id !== editingRuleId)];
+
+        // Insert new rule at correct position based on priority config
+        insertRuleAtPriority(tempRules, tempRule);
+
+        // Sort by priority
+        tempRules.sort((a, b) => a.priority - b.priority);
+
+        // Simulate rule execution
+        const result = {
+            newRuleMatches: [],
+            conflicts: [],
+            totalProcessed: 0,
+            groupingResults: new Map() // itemId -> { groupName, ruleId, conflictingRules }
+        };
+
+        // Get all unassigned items
+        const unassignedItems = allItems.filter(item => item.group === '待分组');
+        result.totalProcessed = unassignedItems.length;
+
+        // Apply rules in priority order
+        unassignedItems.forEach(item => {
+            const matchingRules = [];
+
+            // Find all matching rules
+            for (const rule of tempRules) {
+                if (matchRule(item.name, rule.rule)) {
+                    matchingRules.push(rule);
+                }
+            }
+
+            if (matchingRules.length > 0) {
+                // Use first matching rule (highest priority)
+                const winningRule = matchingRules[0];
+                result.groupingResults.set(item.id, {
+                    groupName: winningRule.groupName,
+                    ruleId: winningRule.id,
+                    conflictingRules: matchingRules.slice(1)
+                });
+
+                // Track if new rule matched this item
+                if (winningRule.id === 'temp_new_rule') {
+                    result.newRuleMatches.push(item);
+                }
+
+                // Check for conflicts
+                if (matchingRules.length > 1) {
+                    const conflictingRuleNames = matchingRules.slice(1).map(r => r.groupName);
+                    let description;
+
+                    if (winningRule.id === 'temp_new_rule') {
+                        description = `新规则优先级更高，将覆盖规则: ${conflictingRuleNames.join(', ')}`;
+                    } else {
+                        const hasNewRule = matchingRules.some(r => r.id === 'temp_new_rule');
+                        if (hasNewRule) {
+                            description = `现有规则"${winningRule.groupName}"优先级更高，新规则不会匹配此项`;
+                        } else {
+                            description = `多个现有规则匹配，使用优先级最高的"${winningRule.groupName}"`;
+                        }
+                    }
+
+                    result.conflicts.push({
+                        itemName: item.name,
+                        description: description,
+                        matchingRules: matchingRules.map(r => r.groupName)
+                    });
+                }
+            }
+        });
+
+        return result;
+    };
+
+    // Calculate new rule priority based on priority config
+    const calculateNewRulePriority = () => {
+        const existingRules = groupRules.filter(r => !r.isSystemRule && r.id !== editingRuleId);
+
+        switch (priorityConfig.type) {
+            case 'highest':
+                return 1;
+            case 'after':
+                if (priorityConfig.afterRuleId) {
+                    const afterRule = existingRules.find(r => r.id === priorityConfig.afterRuleId);
+                    return afterRule ? afterRule.priority + 1 : existingRules.length + 1;
+                }
+                return existingRules.length + 1;
+            case 'lowest':
+            default:
+                return existingRules.length + 1;
+        }
+    };
+
+    // Insert rule at correct priority position
+    const insertRuleAtPriority = (rulesList, newRule) => {
+        const targetPriority = newRule.priority;
+
+        // Adjust priorities of existing rules
+        rulesList.forEach(rule => {
+            if (rule.priority >= targetPriority) {
+                rule.priority += 1;
+            }
+        });
+
+        // Add new rule
+        rulesList.push(newRule);
+    };
+
+    // Insert new rule with priority and adjust other rules
+    const insertNewRuleWithPriority = (newRule) => {
+        const targetPriority = newRule.priority;
+
+        // Adjust priorities of existing rules that should come after the new rule
+        groupRules.forEach(rule => {
+            if (!rule.isSystemRule && rule.priority >= targetPriority) {
+                rule.priority += 1;
+            }
+        });
+
+        // Add the new rule
+        groupRules.push(newRule);
+
+        // Sort rules by priority to maintain order
+        groupRules.sort((a, b) => a.priority - b.priority);
+
+        // Ensure priorities are consecutive
+        const userRules = groupRules.filter(r => !r.isSystemRule);
+        userRules.forEach((rule, index) => {
+            rule.priority = index + 1;
+        });
+    };
+
+    // Test rules button
+    btnTestRules.addEventListener('click', () => {
+        alert('规则测试功能开发中...');
+    });
+
+    // --- 6. 规则拖拽排序功能 ---
+
+    // 将拖拽变量设置为全局变量以便调试
+    window.draggedRuleElement = null;
+    window.draggedRuleId = null;
+    window.draggedRuleIndex = -1;
+
+    // 初始化拖拽功能
+    const initRuleDragAndDrop = () => {
+        console.log('初始化拖拽功能');
+        const ruleTableBody = document.getElementById('rule-table-body');
+
+        // 使用事件委托处理拖拽事件
+        ruleTableBody.addEventListener('dragstart', handleDragStart);
+        ruleTableBody.addEventListener('dragover', handleDragOver);
+        ruleTableBody.addEventListener('dragenter', handleDragEnter);
+        ruleTableBody.addEventListener('dragleave', handleDragLeave);
+        ruleTableBody.addEventListener('drop', handleDrop);
+        ruleTableBody.addEventListener('dragend', handleDragEnd);
+    };
+
+    const handleDragStart = (e) => {
+        // 只有拖拽手柄才能触发拖拽
+        if (!e.target.classList.contains('rule-drag-handle')) {
+            e.preventDefault();
+            return;
+        }
+
+        const ruleRow = e.target.closest('.table-row');
+        if (!ruleRow) return;
+
+        window.draggedRuleElement = ruleRow;
+        window.draggedRuleId = ruleRow.dataset.ruleId;
+        window.draggedRuleIndex = Array.from(ruleRow.parentNode.children).indexOf(ruleRow);
+
+        // 设置拖拽样式
+        ruleRow.classList.add('dragging');
+
+        // 设置拖拽数据
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', ruleRow.outerHTML);
+
+        // 设置拖拽图像（可选）
+        const dragImage = ruleRow.cloneNode(true);
+        dragImage.style.opacity = '0.8';
+        dragImage.style.transform = 'rotate(2deg)';
+        document.body.appendChild(dragImage);
+        e.dataTransfer.setDragImage(dragImage, 0, 0);
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        const ruleRow = e.target.closest('.table-row');
+        if (!ruleRow || ruleRow === window.draggedRuleElement) return;
+
+        // 清除其他行的拖拽样式
+        document.querySelectorAll('.table-row.drag-over, .table-row.drag-over-bottom').forEach(row => {
+            row.classList.remove('drag-over', 'drag-over-bottom');
+        });
+
+        // 确定插入位置
+        const rect = ruleRow.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const mouseY = e.clientY;
+
+        if (mouseY < midY) {
+            ruleRow.classList.add('drag-over');
+        } else {
+            ruleRow.classList.add('drag-over-bottom');
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        const ruleRow = e.target.closest('.table-row');
+        if (!ruleRow) return;
+
+        // 检查鼠标是否真的离开了元素
+        const rect = ruleRow.getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+
+        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+            ruleRow.classList.remove('drag-over', 'drag-over-bottom');
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+
+        const targetRow = e.target.closest('.table-row');
+        if (!targetRow || targetRow === window.draggedRuleElement) return;
+
+        const targetRuleId = targetRow.dataset.ruleId;
+        const targetIndex = Array.from(targetRow.parentNode.children).indexOf(targetRow);
+
+        // 确定插入位置
+        const rect = targetRow.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const mouseY = e.clientY;
+        const insertBefore = mouseY < midY;
+
+        // 计算新的优先级
+        let newPriority;
+        if (insertBefore) {
+            newPriority = targetIndex + 1;
+        } else {
+            newPriority = targetIndex + 2;
+        }
+
+        // 更新规则优先级
+        updateRulePriority(window.draggedRuleId, newPriority);
+
+        // 清除拖拽样式
+        clearDragStyles();
+
+        // 显示成功反馈
+        showDragSuccessFeedback(window.draggedRuleElement);
+    };
+
+    const handleDragEnd = (e) => {
+        clearDragStyles();
+        window.draggedRuleElement = null;
+        window.draggedRuleId = null;
+        window.draggedRuleIndex = -1;
+    };
+
+    const clearDragStyles = () => {
+        document.querySelectorAll('.table-row.dragging, .table-row.drag-over, .table-row.drag-over-bottom').forEach(row => {
+            row.classList.remove('dragging', 'drag-over', 'drag-over-bottom');
+        });
+    };
+
+    const updateRulePriority = (ruleId, newPriority) => {
+        const draggedRule = groupRules.find(rule => rule.id === ruleId);
+        if (!draggedRule) return;
+
+        const oldPriority = draggedRule.priority;
+
+        // 重新排序所有规则的优先级
+        if (newPriority > oldPriority) {
+            // 向下移动：将中间的规则优先级减1
+            groupRules.forEach(rule => {
+                if (rule.priority > oldPriority && rule.priority < newPriority) {
+                    rule.priority--;
+                }
+            });
+            draggedRule.priority = newPriority - 1;
+        } else {
+            // 向上移动：将中间的规则优先级加1
+            groupRules.forEach(rule => {
+                if (rule.priority >= newPriority && rule.priority < oldPriority) {
+                    rule.priority++;
+                }
+            });
+            draggedRule.priority = newPriority;
+        }
+
+        // 重新排序规则数组
+        groupRules.sort((a, b) => a.priority - b.priority);
+
+        // 确保优先级连续
+        groupRules.forEach((rule, index) => {
+            rule.priority = index + 1;
+        });
+
+        // 保存到localStorage
+        saveRulesToStorage();
+
+        // 重新应用规则
+        applyRules();
+
+        // 重新渲染规则列表
+        renderRuleListInPanel();
+    };
+
+    const showDragSuccessFeedback = (ruleElement) => {
+        if (!ruleElement) return;
+
+        // 添加成功反馈样式
+        ruleElement.style.backgroundColor = '#f6ffed';
+        ruleElement.style.border = '1px solid #b7eb8f';
+        ruleElement.style.transition = 'all 0.3s ease';
+
+        // 2秒后移除反馈样式
+        setTimeout(() => {
+            ruleElement.style.backgroundColor = '';
+            ruleElement.style.border = '';
+            setTimeout(() => {
+                ruleElement.style.transition = '';
+            }, 300);
+        }, 2000);
+    };
+
+    // --- 7. 优先级调整按钮功能 ---
+
+    // 优先级调整事件处理
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('priority-top')) {
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+            if (rule && rule.isSystemRule) {
+                alert('系统规则不能调整优先级');
+                return;
+            }
+            adjustRulePriority(ruleId, 'top');
+        } else if (e.target.classList.contains('priority-up')) {
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+            if (rule && rule.isSystemRule) {
+                alert('系统规则不能调整优先级');
+                return;
+            }
+            adjustRulePriority(ruleId, 'up');
+        } else if (e.target.classList.contains('priority-down')) {
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+            if (rule && rule.isSystemRule) {
+                alert('系统规则不能调整优先级');
+                return;
+            }
+            adjustRulePriority(ruleId, 'down');
+        } else if (e.target.classList.contains('priority-bottom')) {
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+            if (rule && rule.isSystemRule) {
+                alert('系统规则不能调整优先级');
+                return;
+            }
+            adjustRulePriority(ruleId, 'bottom');
+        }
+    });
+
+    // 优先级调整函数
+    const adjustRulePriority = (ruleId, action) => {
+        const rule = groupRules.find(r => r.id === ruleId);
+        if (!rule) return;
+
+        const currentPriority = rule.priority;
+        const maxPriority = groupRules.length;
+        let newPriority;
+
+        switch (action) {
+            case 'top':
+                if (currentPriority === 1) return; // 已经是第一位
+                newPriority = 1;
+                break;
+            case 'up':
+                if (currentPriority === 1) return; // 已经是第一位
+                newPriority = currentPriority - 1;
+                break;
+            case 'down':
+                if (currentPriority === maxPriority) return; // 已经是最后一位
+                newPriority = currentPriority + 1;
+                break;
+            case 'bottom':
+                if (currentPriority === maxPriority) return; // 已经是最后一位
+                newPriority = maxPriority;
+                break;
+            default:
+                return;
+        }
+
+        // 更新优先级
+        updateRulePriorityByAction(ruleId, newPriority, action);
+
+        // 显示成功反馈
+        setTimeout(() => {
+            const updatedRuleRow = document.querySelector(`[data-rule-id="${ruleId}"]`);
+            if (updatedRuleRow) {
+                showPriorityAdjustmentFeedback(updatedRuleRow, action);
+            }
+        }, 100);
+    };
+
+    // 根据操作类型更新规则优先级
+    const updateRulePriorityByAction = (ruleId, newPriority, action) => {
+        const rule = groupRules.find(r => r.id === ruleId);
+        if (!rule) return;
+
+        const oldPriority = rule.priority;
+
+        if (action === 'top') {
+            // 置顶：将目标规则设为1，其他规则优先级+1
+            groupRules.forEach(r => {
+                if (r.id === ruleId) {
+                    r.priority = 1;
+                } else if (r.priority < oldPriority) {
+                    r.priority += 1;
+                }
+            });
+        } else if (action === 'bottom') {
+            // 置底：将目标规则设为最大值，其他规则优先级-1
+            const maxPriority = groupRules.length;
+            groupRules.forEach(r => {
+                if (r.id === ruleId) {
+                    r.priority = maxPriority;
+                } else if (r.priority > oldPriority) {
+                    r.priority -= 1;
+                }
+            });
+        } else if (action === 'up') {
+            // 上移：与上一个规则交换优先级
+            const targetRule = groupRules.find(r => r.priority === oldPriority - 1);
+            if (targetRule) {
+                targetRule.priority = oldPriority;
+                rule.priority = oldPriority - 1;
+            }
+        } else if (action === 'down') {
+            // 下移：与下一个规则交换优先级
+            const targetRule = groupRules.find(r => r.priority === oldPriority + 1);
+            if (targetRule) {
+                targetRule.priority = oldPriority;
+                rule.priority = oldPriority + 1;
+            }
+        }
+
+        // 重新排序规则数组
+        groupRules.sort((a, b) => a.priority - b.priority);
+
+        // 确保优先级连续
+        groupRules.forEach((rule, index) => {
+            rule.priority = index + 1;
+        });
+
+        // 保存到localStorage
+        saveRulesToStorage();
+
+        // 重新应用规则
+        applyRules();
+
+        // 重新渲染规则列表
+        renderRuleListInPanel();
+    };
+
+    // 显示优先级调整成功反馈
+    const showPriorityAdjustmentFeedback = (ruleElement, action) => {
+        if (!ruleElement) return;
+
+        const actionText = {
+            'top': '已置顶',
+            'up': '已上移',
+            'down': '已下移',
+            'bottom': '已置底'
+        };
+
+        // 添加成功反馈样式
+        ruleElement.style.backgroundColor = '#f6ffed';
+        ruleElement.style.border = '1px solid #b7eb8f';
+        ruleElement.style.transition = 'all 0.3s ease';
+
+        // 显示操作提示（可选）
+        console.log(`规则 ${ruleElement.dataset.ruleId} ${actionText[action]}`);
+
+        // 2秒后移除反馈样式
+        setTimeout(() => {
+            ruleElement.style.backgroundColor = '';
+            ruleElement.style.border = '';
+            setTimeout(() => {
+                ruleElement.style.transition = '';
+            }, 300);
+        }, 2000);
+    };
+
+    // --- 8. 规则多选功能 ---
+    
+    // 更新全选复选框状态
+    const updateSelectAllRulesCheckbox = () => {
+        const checkboxes = ruleTableBody.querySelectorAll('.rule-checkbox');
+
+        if (checkboxes.length === 0) {
+            selectAllRulesCheckbox.checked = false;
+            selectAllRulesCheckbox.disabled = true;
+        } else {
+            selectAllRulesCheckbox.disabled = false;
+            selectAllRulesCheckbox.checked = Array.from(checkboxes).every(cb => cb.checked);
+        }
+
+        // 更新批量操作按钮状态
+        updateBatchButtonsState();
+    };
+    
+    // 更新批量操作按钮状态
+    const updateBatchButtonsState = () => {
+        const checkboxes = document.querySelectorAll('.rule-checkbox:checked');
+        const batchDeleteBtn = document.getElementById('btn-batch-delete');
+        const batchToggleBtn = document.getElementById('btn-batch-toggle');
+        
+        const hasSelected = checkboxes.length > 0;
+        batchDeleteBtn.disabled = !hasSelected;
+        batchToggleBtn.disabled = !hasSelected;
+    };
+    
+    // 全选复选框事件处理
+    document.getElementById('select-all-rules').addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        document.querySelectorAll('.rule-checkbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        updateBatchButtonsState();
+    });
+    
+    // 规则列表容器的事件委托，处理规则复选框的变化
+    ruleListContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rule-checkbox')) {
+            // 更新规则的启用状态
+            const ruleId = e.target.dataset.ruleId;
+            const rule = groupRules.find(r => r.id === ruleId);
+            if (rule) {
+                rule.enabled = e.target.checked;
+                // 保存到localStorage（排除系统规则）
+                saveRulesToStorage();
+                // 重新应用规则
+                applyRules();
+            }
+            updateSelectAllRulesCheckbox();
+        }
+    });
+    
+    // 批量删除按钮事件处理
+    document.getElementById('btn-batch-delete').addEventListener('click', () => {
+        const selectedCheckboxes = document.querySelectorAll('.rule-checkbox:checked');
+        if (selectedCheckboxes.length === 0) return;
+
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.ruleId);
+
+        // 检查是否包含系统规则
+        const selectedRules = groupRules.filter(rule => selectedIds.includes(rule.id));
+        const hasSystemRule = selectedRules.some(rule => rule.isSystemRule);
+
+        if (hasSystemRule) {
+            alert('不能删除系统规则，请取消选择系统规则后重试');
+            return;
+        }
+        
+        if (confirm(`确定要删除选中的 ${selectedIds.length} 条规则吗？此操作不可撤销。`)) {
+            // 从规则数组中删除选中的规则
+            groupRules = groupRules.filter(rule => !selectedIds.includes(rule.id));
+            
+            // 重新排序优先级
+            groupRules.forEach((rule, index) => {
+                rule.priority = index + 1;
+            });
+            
+            // 保存到localStorage
+            localStorage.setItem('groupRules', JSON.stringify(groupRules));
+            
+            // 重新应用规则
+            applyRules();
+            
+            // 更新UI
+            renderRuleListInPanel();
+            updateSelectAllRulesCheckbox();
+        }
+    });
+    
+    // 批量启用/暂停按钮事件处理
+    document.getElementById('btn-batch-toggle').addEventListener('click', () => {
+        const selectedCheckboxes = document.querySelectorAll('.rule-checkbox:checked');
+        if (selectedCheckboxes.length === 0) return;
+        
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.ruleId);
+        
+        // 确定操作类型（启用或暂停）
+        // 如果所有选中的规则都是启用状态，则执行暂停操作
+        // 如果有任何一个规则是暂停状态，则执行启用操作
+        const selectedRules = groupRules.filter(rule => selectedIds.includes(rule.id));
+        const allEnabled = selectedRules.every(rule => rule.enabled);
+        const newState = !allEnabled;
+        const actionText = newState ? '启用' : '暂停';
+        
+        if (confirm(`确定要${actionText}选中的 ${selectedIds.length} 条规则吗？`)) {
+            // 更新规则状态
+            selectedRules.forEach(rule => {
+                rule.enabled = newState;
+            });
+            
+            // 保存到localStorage
+            saveRulesToStorage();
+            
+            // 重新应用规则
+            applyRules();
+            
+            // 更新UI
+            renderRuleListInPanel();
+        }
+    });
+    
+    // --- 9. INITIAL RENDER ---
+    renderAll();
+
+    // 初始化拖拽功能
+    initRuleDragAndDrop();
+
+    // Load rules from localStorage if available
+    const savedRules = localStorage.getItem('groupRules');
+    if (savedRules) {
+        try {
+            groupRules = JSON.parse(savedRules);
+            // 确保系统规则存在
+            ensureSystemRule();
+            applyRules();
+        } catch (e) {
+            console.error('Failed to load rules:', e);
+            // 如果加载失败，确保系统规则存在
+            ensureSystemRule();
+        }
+    } else {
+        // 添加一些示例规则用于测试拖拽功能
+        groupRules = [
+            createRule({
+                id: 'rule_1',
+                name: '头条规则',
+                groupName: '头条系',
+                bindingType: 'create',
+                priority: 1,
+                enabled: true,
+                matchMode: 'wildcard',
+                rule: { type: 'wildcard', pattern: '头条*' }
+            }),
+            createRule({
+                id: 'rule_2',
+                name: '抖音规则',
+                groupName: '抖音系',
+                bindingType: 'create',
+                priority: 2,
+                enabled: true,
+                matchMode: 'wildcard',
+                rule: { type: 'wildcard', pattern: '抖音*' }
+            }),
+            createRule({
+                id: 'rule_3',
+                name: '移动端规则',
+                groupName: '移动端',
+                bindingType: 'existing',
+                priority: 3,
+                enabled: true,
+                matchMode: 'keywords',
+                rule: {
+                    type: 'keywords',
+                    includeKeywords: ['ios', 'android'],
+                    excludeKeywords: []
+                }
+            }),
+            createRule({
+                id: 'rule_4',
+                name: 'PC端规则',
+                groupName: 'PC端',
+                bindingType: 'existing',
+                priority: 4,
+                enabled: false,
+                matchMode: 'keywords',
+                rule: {
+                    type: 'keywords',
+                    includeKeywords: ['windows', 'macos'],
+                    excludeKeywords: []
+                }
+            })
+        ];
+        // 确保系统规则存在
+        ensureSystemRule();
+        applyRules();
+    }
+
+    // Save rules to localStorage on change
+    window.addEventListener('beforeunload', () => {
+        saveRulesToStorage();
+    });
+});
+</script>
+
+</body>
+</html>
