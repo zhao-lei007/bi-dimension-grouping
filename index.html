@@ -960,7 +960,11 @@
                     <button class="btn btn-primary" id="btn-new-rule-main">新建</button>
                     <button class="btn btn-default" id="btn-batch-delete" disabled>删除</button>
                     <button class="btn btn-default" id="btn-batch-toggle" disabled>启用/暂停</button>
+                    <button class="btn btn-default" id="btn-import-rules">导入</button>
+                    <button class="btn btn-default" id="btn-export-rules">导出</button>
                 </div>
+                <!-- Hidden file input for import functionality -->
+                <input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
 
             <!-- Rule List Container with Table Structure -->
@@ -1389,6 +1393,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTestRules = document.getElementById('btn-test-rules');
     const btnBatchDelete = document.getElementById('btn-batch-delete');
     const btnBatchToggle = document.getElementById('btn-batch-toggle');
+    const btnImportRules = document.getElementById('btn-import-rules');
+    const btnExportRules = document.getElementById('btn-export-rules');
+    const importFileInput = document.getElementById('import-file-input');
     const ruleCount = document.getElementById('rule-count');
 
     // --- 3. RULE ENGINE ---
@@ -3558,7 +3565,251 @@ document.addEventListener('DOMContentLoaded', () => {
             renderRuleListInPanel();
         }
     });
-    
+
+    // --- 8. IMPORT/EXPORT FUNCTIONALITY ---
+
+    // 导出规则功能
+    const exportRules = () => {
+        try {
+            // 准备导出数据
+            const exportData = {
+                version: "1.0",
+                exportTime: new Date().toISOString(),
+                rules: groupRules.filter(rule => !rule.isSystemRule).map(rule => ({
+                    id: rule.id,
+                    groupName: rule.groupName,
+                    rule: rule.rule,
+                    priority: rule.priority,
+                    enabled: rule.enabled,
+                    bindingType: rule.bindingType,
+                    createTime: rule.createTime || new Date().toISOString()
+                }))
+            };
+
+            // 生成文件名
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                            String(now.getMonth() + 1).padStart(2, '0') +
+                            String(now.getDate()).padStart(2, '0') + '_' +
+                            String(now.getHours()).padStart(2, '0') +
+                            String(now.getMinutes()).padStart(2, '0') +
+                            String(now.getSeconds()).padStart(2, '0');
+            const filename = `grouping_rules_${timestamp}.json`;
+
+            // 创建下载链接
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // 显示成功提示
+            showNotification(`成功导出 ${exportData.rules.length} 条规则到文件 ${filename}`, 'success');
+
+        } catch (error) {
+            console.error('Export failed:', error);
+            showNotification('导出失败：' + error.message, 'error');
+        }
+    };
+
+    // 导入规则功能
+    const importRules = (file) => {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            try {
+                const importData = JSON.parse(e.target.result);
+
+                // 验证文件格式
+                if (!importData.rules || !Array.isArray(importData.rules)) {
+                    throw new Error('无效的文件格式：缺少规则数据');
+                }
+
+                // 验证规则数据结构
+                const validRules = [];
+                const errors = [];
+
+                importData.rules.forEach((rule, index) => {
+                    try {
+                        // 验证必需字段
+                        if (!rule.groupName || !rule.rule) {
+                            throw new Error(`规则 ${index + 1}：缺少必需字段`);
+                        }
+
+                        // 验证规则类型
+                        if (!rule.rule.type || !['keywords', 'wildcard', 'regex'].includes(rule.rule.type)) {
+                            throw new Error(`规则 ${index + 1}：无效的匹配类型`);
+                        }
+
+                        // 生成新的唯一ID以避免冲突
+                        const newId = 'imported_rule_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+                        // 创建规则对象
+                        const newRule = {
+                            id: newId,
+                            groupName: rule.groupName,
+                            rule: rule.rule,
+                            priority: 0, // 临时设置，稍后重新计算
+                            enabled: rule.enabled !== false, // 默认启用
+                            bindingType: rule.bindingType || 'existing',
+                            createTime: new Date().toISOString(),
+                            stats: {
+                                matchCount: 0,
+                                lastMatched: null,
+                                conflictCount: 0
+                            }
+                        };
+
+                        validRules.push(newRule);
+
+                    } catch (ruleError) {
+                        errors.push(ruleError.message);
+                    }
+                });
+
+                if (validRules.length === 0) {
+                    throw new Error('没有找到有效的规则数据');
+                }
+
+                // 计算新规则的优先级
+                const maxPriority = Math.max(...groupRules.filter(r => !r.isSystemRule).map(r => r.priority), 0);
+                validRules.forEach((rule, index) => {
+                    rule.priority = maxPriority + index + 1;
+                });
+
+                // 添加规则到现有规则列表
+                groupRules.push(...validRules);
+
+                // 保存到localStorage
+                saveRulesToStorage();
+
+                // 重新应用规则
+                applyRules();
+
+                // 更新UI
+                renderRuleListInPanel();
+
+                // 显示成功提示
+                let message = `成功导入 ${validRules.length} 条规则`;
+                if (errors.length > 0) {
+                    message += `，跳过 ${errors.length} 条无效规则`;
+                }
+                showNotification(message, 'success');
+
+                // 如果有错误，在控制台显示详细信息
+                if (errors.length > 0) {
+                    console.warn('Import errors:', errors);
+                }
+
+            } catch (error) {
+                console.error('Import failed:', error);
+                showNotification('导入失败：' + error.message, 'error');
+            }
+        };
+
+        reader.onerror = () => {
+            showNotification('文件读取失败', 'error');
+        };
+
+        reader.readAsText(file);
+    };
+
+    // 显示通知消息的辅助函数
+    const showNotification = (message, type = 'info') => {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+
+        // 添加样式
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 10000;
+            max-width: 400px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        `;
+
+        // 根据类型设置背景色
+        switch (type) {
+            case 'success':
+                notification.style.backgroundColor = '#52c41a';
+                break;
+            case 'error':
+                notification.style.backgroundColor = '#ff4d4f';
+                break;
+            case 'warning':
+                notification.style.backgroundColor = '#faad14';
+                break;
+            default:
+                notification.style.backgroundColor = '#1890ff';
+        }
+
+        // 添加到页面
+        document.body.appendChild(notification);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    };
+
+    // 导出按钮事件处理
+    btnExportRules.addEventListener('click', () => {
+        const nonSystemRules = groupRules.filter(rule => !rule.isSystemRule);
+        if (nonSystemRules.length === 0) {
+            showNotification('没有可导出的规则', 'warning');
+            return;
+        }
+
+        exportRules();
+    });
+
+    // 导入按钮事件处理
+    btnImportRules.addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    // 文件选择事件处理
+    importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                showNotification('请选择JSON格式的文件', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB限制
+                showNotification('文件大小不能超过5MB', 'error');
+                return;
+            }
+
+            importRules(file);
+        }
+
+        // 清空文件输入，允许重复选择同一文件
+        e.target.value = '';
+    });
+
     // --- 9. INITIAL RENDER ---
     renderAll();
 
@@ -3569,7 +3820,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedRules = localStorage.getItem('groupRules');
     if (savedRules) {
         try {
-            groupRules = JSON.parse(savedRules);
+            const loadedRules = JSON.parse(savedRules);
+            // 确保每个规则都有完整的数据结构
+            groupRules = loadedRules.map(rule => {
+                // 确保规则有stats对象
+                if (!rule.stats) {
+                    rule.stats = {
+                        matchCount: 0,
+                        lastMatched: null,
+                        conflictCount: 0
+                    };
+                }
+                return rule;
+            });
             // 确保系统规则存在
             ensureSystemRule();
             applyRules();
